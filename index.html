@@ -3,64 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Carnival Wave Shooter v2</title>
+    <title>Cyberpunk Carnival Chaos</title>
     <style>
         * { box-sizing: border-box; }
         body, html { 
             margin: 0; padding: 0; width: 100%; height: 100%; 
             overflow: hidden; 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-family: 'Comic Sans MS', 'Arial Rounded MT Bold', sans-serif;
+            background: #0a0a0a;
+            font-family: 'Courier New', monospace;
             touch-action: none;
         }
 
-        /* Overlays */
+        /* Cyberpunk Theme */
         .overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white; display: flex; flex-direction: column; 
+            background: linear-gradient(135deg, #1a0033 0%, #0d0d0d 50%, #001a1a 100%);
+            color: #00ff88; display: flex; flex-direction: column; 
             align-items: center; justify-content: flex-start;
             z-index: 200; text-align: center; padding: 20px;
             overflow-y: auto;
+            border: 2px solid #ff00ff;
+            box-shadow: inset 0 0 50px rgba(255,0,255,0.3);
         }
 
-        .overlay h1 { font-size: 42px; margin: 20px 0; text-shadow: 4px 4px 0 rgba(0,0,0,0.3); }
-        .overlay h2 { font-size: 28px; margin: 15px 0; }
-        .overlay h3 { font-size: 22px; margin: 10px 0; }
-        .overlay p { font-size: 16px; margin: 10px 0; opacity: 0.9; }
+        .overlay h1 { 
+            font-size: 42px; margin: 20px 0; 
+            text-shadow: 0 0 20px #00ff88, 0 0 40px #00ff88;
+            color: #00ff88;
+            animation: glitch 3s infinite;
+        }
+        .overlay h2 { 
+            font-size: 28px; margin: 15px 0; 
+            color: #ff00ff;
+            text-shadow: 0 0 10px #ff00ff;
+        }
+        .overlay h3 { 
+            font-size: 22px; margin: 10px 0; 
+            color: #00ddff;
+            text-shadow: 0 0 10px #00ddff;
+        }
+        .overlay p { font-size: 16px; margin: 10px 0; opacity: 0.9; color: #aaa; }
+
+        @keyframes glitch {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-2px); }
+            40% { transform: translateX(2px); }
+            60% { transform: translateX(-2px); }
+            80% { transform: translateX(2px); }
+        }
 
         button {
-            padding: 15px 30px; margin: 10px; border-radius: 25px; border: none;
-            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            padding: 15px 30px; margin: 10px; border-radius: 5px; 
+            border: 2px solid #00ff88;
+            background: rgba(0,255,136,0.2);
             font-weight: bold; font-size: 18px; cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            transition: transform 0.2s;
+            box-shadow: 0 0 20px rgba(0,255,136,0.5);
+            transition: all 0.2s;
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
         }
-        button:hover { transform: scale(1.05); }
+        button:hover { 
+            background: rgba(0,255,136,0.4);
+            box-shadow: 0 0 30px rgba(0,255,136,0.8);
+        }
         button:active { transform: scale(0.95); }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        button:disabled { 
+            opacity: 0.3; cursor: not-allowed; 
+            box-shadow: none;
+        }
 
         .btn-small { padding: 8px 15px; font-size: 14px; margin: 5px; }
         .btn-large { padding: 20px 40px; font-size: 24px; }
-        .btn-green { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); }
-        .btn-red { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
-        .btn-blue { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+        .btn-green { border-color: #00ff88; color: #00ff88; }
+        .btn-red { border-color: #ff0066; color: #ff0066; box-shadow: 0 0 20px rgba(255,0,102,0.5); }
+        .btn-blue { border-color: #00ddff; color: #00ddff; box-shadow: 0 0 20px rgba(0,221,255,0.5); }
 
         input[type="file"] {
-            margin: 10px; padding: 10px; border-radius: 10px;
-            background: white; font-size: 14px;
+            margin: 10px; padding: 10px; border-radius: 5px;
+            background: rgba(0,0,0,0.8); font-size: 14px;
+            border: 2px solid #00ff88;
+            color: #00ff88;
         }
 
         select, input[type="text"] {
-            margin: 10px; padding: 12px; border-radius: 10px;
-            border: 2px solid white; font-size: 16px; width: 80%; max-width: 400px;
+            margin: 10px; padding: 12px; border-radius: 5px;
+            border: 2px solid #00ff88; font-size: 16px; width: 80%; max-width: 400px;
+            background: rgba(0,0,0,0.8);
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
         }
 
         /* Game Container */
         #game-container { 
             position: relative; width: 100vw; height: 100vh; 
-            background: linear-gradient(180deg, #87CEEB 0%, #E0F6FF 100%);
+            background: linear-gradient(180deg, #0d0d1a 0%, #1a0033 50%, #000 100%);
             display: none; 
+        }
+
+        /* Scanlines effect */
+        #game-container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0,0,0,0.15),
+                rgba(0,0,0,0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 1000;
         }
 
         /* UI Elements */
@@ -71,37 +125,87 @@
         }
 
         #left-ui, #right-ui { 
-            background: rgba(255,255,255,0.9); padding: 15px; 
-            border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            background: rgba(0,0,0,0.8); padding: 15px; 
+            border-radius: 5px; 
+            border: 2px solid #00ff88;
+            box-shadow: 0 0 20px rgba(0,255,136,0.3);
         }
 
-        #score-display { font-size: 24px; font-weight: bold; color: #667eea; margin: 5px 0; }
-        #combo-display { font-size: 18px; color: #f5576c; margin: 5px 0; }
-        #level-display { font-size: 20px; font-weight: bold; color: #764ba2; margin: 5px 0; }
-        #timer-display { font-size: 22px; font-weight: bold; color: #f5576c; margin: 5px 0; }
+        #score-display { font-size: 24px; font-weight: bold; color: #00ff88; margin: 5px 0; text-shadow: 0 0 10px #00ff88; }
+        #combo-display { font-size: 18px; color: #ff00ff; margin: 5px 0; text-shadow: 0 0 10px #ff00ff; }
+        #level-display { font-size: 20px; font-weight: bold; color: #00ddff; margin: 5px 0; text-shadow: 0 0 10px #00ddff; }
+        #timer-display { font-size: 22px; font-weight: bold; color: #ff0066; margin: 5px 0; text-shadow: 0 0 10px #ff0066; }
+
+        /* Ammo Display */
+        #ammo-display {
+            position: absolute; bottom: 240px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.9); padding: 15px 25px;
+            border-radius: 10px; border: 2px solid #ff00ff;
+            box-shadow: 0 0 30px rgba(255,0,255,0.5);
+            z-index: 60; font-size: 20px; color: #ff00ff;
+            text-shadow: 0 0 10px #ff00ff;
+        }
+
+        #ammo-bars {
+            display: flex; gap: 8px; margin-top: 10px;
+        }
+
+        .ammo-bar {
+            width: 40px; height: 8px; background: rgba(255,0,255,0.2);
+            border: 1px solid #ff00ff; border-radius: 3px;
+            position: relative; overflow: hidden;
+        }
+
+        .ammo-bar.active {
+            background: #ff00ff;
+            box-shadow: 0 0 10px #ff00ff;
+            animation: ammo-pulse 0.5s;
+        }
+
+        @keyframes ammo-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .ammo-bar.reloading::after {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; height: 100%;
+            background: #ff00ff;
+            animation: reload-fill 2s linear;
+        }
+
+        @keyframes reload-fill {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
 
         /* Projectile Selector */
         #projectile-selector {
             position: absolute; bottom: 180px; left: 50%; transform: translateX(-50%);
-            background: rgba(255,255,255,0.95); padding: 10px 20px;
-            border-radius: 20px; display: flex; gap: 10px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3); z-index: 60;
+            background: rgba(0,0,0,0.9); padding: 10px 20px;
+            border-radius: 10px; display: flex; gap: 10px;
+            border: 2px solid #00ff88;
+            box-shadow: 0 0 30px rgba(0,255,136,0.3); z-index: 60;
         }
 
         .projectile-btn {
-            font-size: 40px; padding: 10px; background: none; border: 3px solid transparent;
-            border-radius: 50%; cursor: pointer; transition: all 0.2s; margin: 0;
+            font-size: 40px; padding: 10px; background: rgba(0,255,136,0.1); 
+            border: 3px solid transparent;
+            border-radius: 10px; cursor: pointer; transition: all 0.2s; margin: 0;
             box-shadow: none; width: 60px; height: 60px; display: flex;
             align-items: center; justify-content: center;
         }
 
         .projectile-btn.active { 
-            border-color: #667eea; background: rgba(102, 126, 234, 0.2);
+            border-color: #00ff88; background: rgba(0,255,136,0.3);
             transform: scale(1.15);
+            box-shadow: 0 0 20px rgba(0,255,136,0.8);
         }
 
         .projectile-btn.suggested {
-            border-color: #f5576c; animation: pulse 1s infinite;
+            border-color: #ff00ff; animation: pulse 1s infinite;
+            box-shadow: 0 0 20px rgba(255,0,255,0.8);
         }
 
         @keyframes pulse {
@@ -113,22 +217,26 @@
         .character {
             position: absolute; 
             width: 150px; height: 150px;
-            border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            border-radius: 10px; 
+            box-shadow: 0 0 30px rgba(0,255,136,0.5);
             z-index: 10; transition: all 0.3s;
+            border: 2px solid #00ff88;
         }
 
         .character.boss {
             width: 250px; height: 250px;
+            box-shadow: 0 0 50px rgba(255,0,255,0.8);
+            border: 3px solid #ff00ff;
         }
 
         .character-img {
             width: 100%; height: 100%; object-fit: cover;
-            border-radius: 20px; position: absolute; top: 0; left: 0;
+            border-radius: 10px; position: absolute; top: 0; left: 0;
         }
 
         .character-reaction {
             width: 100%; height: 100%; object-fit: cover;
-            border-radius: 20px; position: absolute; top: 0; left: 0;
+            border-radius: 10px; position: absolute; top: 0; left: 0;
             opacity: 0; transition: opacity 0.3s;
         }
 
@@ -140,6 +248,7 @@
             font-size: 120px; text-align: center; 
             line-height: 150px; position: absolute;
             width: 100%; height: 100%;
+            filter: drop-shadow(0 0 20px #00ff88);
         }
 
         .character.boss .character-emoji {
@@ -148,76 +257,115 @@
 
         .character-need {
             position: absolute; top: -50px; left: 50%; transform: translateX(-50%);
-            background: white; padding: 8px 15px; border-radius: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2); font-size: 24px;
+            background: rgba(0,0,0,0.9); padding: 8px 15px; border-radius: 10px;
+            border: 2px solid #ff00ff;
+            box-shadow: 0 0 20px rgba(255,0,255,0.5); font-size: 24px;
             white-space: nowrap; z-index: 11;
         }
 
         .character-progress {
             position: absolute; bottom: -30px; left: 10%; width: 80%;
-            height: 15px; background: rgba(255,255,255,0.5);
-            border-radius: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            height: 15px; background: rgba(0,0,0,0.8);
+            border-radius: 5px; overflow: hidden; 
+            border: 2px solid #00ff88;
+            box-shadow: 0 0 10px rgba(0,255,136,0.3);
         }
 
         .character-progress-fill {
-            height: 100%; background: linear-gradient(90deg, #84fab0 0%, #8fd3f4 100%);
-            transition: width 0.3s; border-radius: 10px;
+            height: 100%; background: linear-gradient(90deg, #00ff88 0%, #00ddff 100%);
+            transition: width 0.3s; border-radius: 3px;
+            box-shadow: 0 0 15px #00ff88;
         }
 
-        /* Zone Markers (on character) */
+        /* Zone Markers (on character) - MUCH BRIGHTER */
         .zone-marker {
-            position: absolute; width: 40px; height: 40px;
+            position: absolute; width: 50px; height: 50px;
             border: 4px solid; border-radius: 50%;
             transform: translate(-50%, -50%); pointer-events: none;
-            z-index: 12; box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            z-index: 12; animation: zone-glow 2s infinite;
         }
 
-        .zone-marker.upper { border-color: #4CAF50; background: rgba(76, 175, 80, 0.2); }
-        .zone-marker.middle { border-color: #2196F3; background: rgba(33, 150, 243, 0.2); }
-        .zone-marker.lower { border-color: #f44336; background: rgba(244, 67, 54, 0.2); }
+        .zone-marker.upper { 
+            border-color: #00ff88; 
+            background: rgba(0,255,136,0.4);
+            box-shadow: 0 0 20px #00ff88, inset 0 0 20px #00ff88;
+        }
+        .zone-marker.middle { 
+            border-color: #00ddff; 
+            background: rgba(0,221,255,0.4);
+            box-shadow: 0 0 20px #00ddff, inset 0 0 20px #00ddff;
+        }
+        .zone-marker.lower { 
+            border-color: #ff0066; 
+            background: rgba(255,0,102,0.4);
+            box-shadow: 0 0 20px #ff0066, inset 0 0 20px #ff0066;
+        }
 
-        /* Slingshot */
+        @keyframes zone-glow {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        /* Glitchy Holographic Slingshot */
         #slingshot-base {
             position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
-            width: 80px; height: 100px; z-index: 40;
+            width: 100px; height: 120px; z-index: 40;
         }
 
-        #slingshot-node {
+        #slingshot-hologram {
             position: absolute; bottom: 80px; left: 50%;
-            width: 25px; height: 25px; background: #8B4513; border-radius: 50%;
-            transform: translateX(-50%); z-index: 41; box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+            width: 30px; height: 30px; 
+            background: radial-gradient(circle, #00ff88, transparent);
+            border-radius: 50%;
+            transform: translateX(-50%); z-index: 41; 
+            box-shadow: 0 0 30px #00ff88, 0 0 60px #00ff88;
+            animation: hologram-flicker 3s infinite;
+        }
+
+        @keyframes hologram-flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+            25%, 75% { opacity: 0.9; }
         }
 
         .band {
-            position: absolute; height: 8px; 
-            background: linear-gradient(90deg, #8B4513, #A0522D);
-            transform-origin: left center; z-index: 39; border-radius: 4px;
-            display: none; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            position: absolute; height: 4px; 
+            background: linear-gradient(90deg, #00ff88, #00ddff);
+            transform-origin: left center; z-index: 39; border-radius: 2px;
+            display: none; 
+            box-shadow: 0 0 10px #00ff88;
         }
 
         /* Projectiles */
         .projectile { 
             position: absolute; font-size: 50px; z-index: 45; 
             transform: translate(-50%, -50%); 
-            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));
+            filter: drop-shadow(0 0 15px #00ff88);
         }
 
         .ghost { 
-            opacity: 0.6; pointer-events: none; position: absolute; 
+            opacity: 0.5; pointer-events: none; position: absolute; 
             font-size: 50px; z-index: 44; transform: translate(-50%, -50%); 
+            filter: drop-shadow(0 0 20px #ff00ff);
         }
 
         .trajectory-dot {
-            position: absolute; width: 6px; height: 6px; 
-            background: rgba(255,255,255,0.6); border-radius: 50%;
+            position: absolute; width: 8px; height: 8px; 
+            background: #00ff88; border-radius: 50%;
             z-index: 38; pointer-events: none;
+            box-shadow: 0 0 10px #00ff88;
+            animation: dot-fade 0.5s;
+        }
+
+        @keyframes dot-fade {
+            0% { opacity: 0; }
+            100% { opacity: 0.8; }
         }
 
         /* Floating Text */
         .floating-text {
             position: absolute; font-size: 32px; font-weight: bold;
             z-index: 100; pointer-events: none; animation: float-up 1.5s ease-out;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
 
         @keyframes float-up {
@@ -233,22 +381,27 @@
         }
 
         .image-slot {
-            border: 3px dashed rgba(255,255,255,0.5); border-radius: 15px;
-            padding: 15px; text-align: center; background: rgba(255,255,255,0.2);
+            border: 3px dashed rgba(0,255,136,0.3); border-radius: 10px;
+            padding: 15px; text-align: center; background: rgba(0,0,0,0.5);
             transition: all 0.3s;
         }
 
         .image-slot.filled {
-            border: 3px solid white; background: rgba(255,255,255,0.3);
+            border: 3px solid #00ff88; 
+            background: rgba(0,255,136,0.1);
+            box-shadow: 0 0 20px rgba(0,255,136,0.3);
         }
 
         .image-preview {
             width: 100%; height: 100px; object-fit: cover;
-            border-radius: 10px; margin: 5px 0;
+            border-radius: 5px; margin: 5px 0;
+            border: 2px solid #00ff88;
         }
 
         .slot-label {
             font-size: 16px; font-weight: bold; margin: 5px 0;
+            color: #00ff88;
+            text-shadow: 0 0 10px #00ff88;
         }
 
         /* Zone Editor */
@@ -257,34 +410,50 @@
             background: rgba(0,0,0,0.95); z-index: 300;
             display: none; flex-direction: column; align-items: center;
             justify-content: center; padding: 20px;
+            border: 4px solid #ff00ff;
         }
 
         #zone-editor-canvas-container {
             position: relative; max-width: 90vw; max-height: 70vh;
-            background: white; border-radius: 15px; padding: 10px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.8); border-radius: 10px; padding: 10px;
+            box-shadow: 0 0 40px rgba(255,0,255,0.5);
+            border: 2px solid #ff00ff;
         }
 
         #zone-editor-canvas {
             max-width: 100%; max-height: 100%; display: block;
-            cursor: crosshair; border-radius: 10px;
+            cursor: crosshair; border-radius: 5px;
         }
 
         #zone-editor-instructions {
-            background: rgba(255,255,255,0.95); padding: 20px;
-            border-radius: 15px; margin-bottom: 20px; max-width: 600px;
+            background: rgba(0,0,0,0.9); padding: 20px;
+            border-radius: 10px; margin-bottom: 20px; max-width: 600px;
+            border: 2px solid #00ff88;
+            box-shadow: 0 0 30px rgba(0,255,136,0.3);
         }
 
         .zone-dot {
-            position: absolute; width: 50px; height: 50px;
+            position: absolute; width: 60px; height: 60px;
             border: 5px solid; border-radius: 50%;
             transform: translate(-50%, -50%); pointer-events: none;
             animation: zone-pulse 1.5s infinite;
         }
 
-        .zone-dot.upper { border-color: #4CAF50; background: rgba(76, 175, 80, 0.3); }
-        .zone-dot.middle { border-color: #2196F3; background: rgba(33, 150, 243, 0.3); }
-        .zone-dot.lower { border-color: #f44336; background: rgba(244, 67, 54, 0.3); }
+        .zone-dot.upper { 
+            border-color: #00ff88; 
+            background: rgba(0,255,136,0.3);
+            box-shadow: 0 0 30px #00ff88;
+        }
+        .zone-dot.middle { 
+            border-color: #00ddff; 
+            background: rgba(0,221,255,0.3);
+            box-shadow: 0 0 30px #00ddff;
+        }
+        .zone-dot.lower { 
+            border-color: #ff0066; 
+            background: rgba(255,0,102,0.3);
+            box-shadow: 0 0 30px #ff0066;
+        }
 
         @keyframes zone-pulse {
             0%, 100% { transform: translate(-50%, -50%) scale(1); }
@@ -293,20 +462,23 @@
 
         /* Voice Recording Panel */
         .voice-panel {
-            background: rgba(255,255,255,0.2); padding: 15px;
-            border-radius: 15px; margin: 10px; max-width: 600px; width: 100%;
+            background: rgba(0,0,0,0.7); padding: 15px;
+            border-radius: 10px; margin: 10px; max-width: 600px; width: 100%;
+            border: 2px solid #00ff88;
+            box-shadow: 0 0 20px rgba(0,255,136,0.3);
         }
 
         .voice-row {
             display: flex; align-items: center; justify-content: space-between;
-            margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.3);
-            border-radius: 10px; flex-wrap: wrap;
+            margin: 10px 0; padding: 10px; background: rgba(0,255,136,0.1);
+            border-radius: 5px; flex-wrap: wrap;
         }
 
         .recording-indicator {
             display: inline-block; width: 12px; height: 12px;
-            background: red; border-radius: 50%; margin-left: 10px;
+            background: #ff0066; border-radius: 50%; margin-left: 10px;
             animation: blink 1s infinite;
+            box-shadow: 0 0 10px #ff0066;
         }
 
         @keyframes blink {
@@ -320,8 +492,8 @@
 
         /* Scrollbar Styling */
         ::-webkit-scrollbar { width: 10px; }
-        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.2); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.5); border-radius: 10px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.5); border-radius: 5px; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,255,136,0.5); border-radius: 5px; }
     </style>
 </head>
 <body>
@@ -330,51 +502,56 @@
 
 <!-- WELCOME SCREEN -->
 <div id="welcome-screen" class="overlay">
-    <h1>🎪 CARNIVAL WAVE SHOOTER 🎯</h1>
-    <p>A playful wave-based carnival game!</p>
-    <p style="font-size: 14px; max-width: 400px;">
-        This game will request access to your <b>microphone</b> for custom voice recordings
-        and <b>photo uploads</b> for custom characters. All data stays on your device.
+    <h1>⚡ CYBERPUNK CARNIVAL CHAOS ⚡</h1>
+    <p style="color: #ff00ff;">A dystopian grunge carnival shooter</p>
+    <p style="font-size: 14px; max-width: 400px; color: #aaa;">
+        This game requires <b style="color: #00ff88;">microphone</b> access for voice recordings
+        and <b style="color: #00ff88;">photo uploads</b> for custom targets.
+        All data remains local.
     </p>
-    <button class="btn-large btn-green" onclick="showSetup()">START SETUP</button>
+    <button class="btn-large btn-green" onclick="showSetup()">INITIALIZE SYSTEM</button>
 </div>
 
 <!-- SETUP SCREEN -->
 <div id="setup-screen" class="overlay hidden">
-    <h2>📸 UPLOAD YOUR CHARACTERS</h2>
-    <p>Upload 2 images per character: Neutral + Reaction</p>
+    <h2>📸 CONFIGURE TARGETS</h2>
+    <p>For each level, select preset emoji OR upload 2 custom images:</p>
+    <p style="font-size: 14px; opacity: 0.9; max-width: 500px;">
+        <b style="color: #00ff88;">Custom Images Need:</b><br>
+        1️⃣ NEUTRAL image (default state)<br>
+        2️⃣ REACTION image (displayed on hit - 0.5 sec)<br>
+        3️⃣ Mark 3 hit zones on neutral image
+    </p>
     
-    <div class="image-grid" id="image-grid">
-        <!-- Generated dynamically -->
-    </div>
+    <div class="image-grid" id="image-grid"></div>
     
     <button class="btn-large btn-green" onclick="showVoiceSetup()" id="continue-voice-btn" disabled>
-        CONTINUE TO VOICE SETUP →
+        PROCEED TO AUDIO CONFIG →
     </button>
 </div>
 
 <!-- ZONE EDITOR MODAL -->
 <div id="zone-editor-modal">
     <div id="zone-editor-instructions">
-        <h3 style="margin-top: 0; color: #333;">🎯 Mark Hit Zones</h3>
-        <p style="color: #666; font-size: 14px;">
-            Click to mark 3 zones on your character:<br>
-            <span style="color: #4CAF50;">●</span> <b>Upper Zone</b> (Head/Mouth) - for treats<br>
-            <span style="color: #2196F3;">●</span> <b>Middle Zone</b> (Hands/Arms) - for gifts<br>
-            <span style="color: #f44336;">●</span> <b>Lower Zone</b> (Body/Legs) - for impacts
+        <h3 style="margin-top: 0; color: #00ff88;">🎯 MARK TARGET ZONES</h3>
+        <p style="color: #aaa; font-size: 14px;">
+            Click 3 locations on your target:<br>
+            <span style="color: #00ff88;">●</span> <b>UPPER ZONE</b> (Head/Mouth) - catches treats<br>
+            <span style="color: #00ddff;">●</span> <b>MIDDLE ZONE</b> (Hands/Chest) - catches gifts<br>
+            <span style="color: #ff0066;">●</span> <b>LOWER ZONE</b> (Body/Legs) - impact zone<br><br>
+            <b style="color: #ff00ff;">TIP:</b> Click "RESET" anytime to restart!
         </p>
-        <div id="zone-status" style="color: #333; font-weight: bold; font-size: 16px; margin: 10px 0;">
-            Click to mark: <span id="current-zone-name" style="color: #4CAF50;">UPPER ZONE</span>
+        <div id="zone-status" style="color: #00ff88; font-weight: bold; font-size: 16px; margin: 10px 0;">
+            MARK: <span id="current-zone-name" style="color: #00ff88;">UPPER ZONE</span>
         </div>
     </div>
     
     <div id="zone-editor-canvas-container">
         <img id="zone-editor-canvas" src="" alt="Zone Editor">
-        <!-- Zone dots will be added dynamically -->
     </div>
     
     <div style="margin-top: 20px;">
-        <button class="btn-small btn-red" onclick="resetZones()">↺ Reset Zones</button>
+        <button class="btn-small btn-red" onclick="resetZones()">↺ RESET ZONES</button>
         <button class="btn-large btn-green" onclick="saveZones()" id="save-zones-btn" disabled>
             ✓ SAVE ZONES
         </button>
@@ -383,36 +560,34 @@
 
 <!-- VOICE SETUP SCREEN -->
 <div id="voice-setup-screen" class="overlay hidden">
-    <h2>🎤 RECORD CHARACTER VOICES</h2>
-    <p>Record unique responses for each character</p>
+    <h2>🎤 CONFIGURE AUDIO RESPONSES</h2>
+    <p>Record unique voice reactions for each target</p>
     
     <div style="max-height: 70vh; overflow-y: auto; width: 100%; max-width: 700px;">
-        <div id="voice-panels">
-            <!-- Generated dynamically per character -->
-        </div>
+        <div id="voice-panels"></div>
     </div>
     
     <button class="btn-large btn-green" onclick="showMusicSetup()">
-        CONTINUE TO MUSIC SETUP →
+        PROCEED TO MUSIC CONFIG →
     </button>
 </div>
 
 <!-- MUSIC SETUP SCREEN -->
 <div id="music-setup-screen" class="overlay hidden">
-    <h2>🎵 BACKGROUND MUSIC</h2>
-    <p>Choose background music for your game</p>
+    <h2>🎵 BACKGROUND AUDIO</h2>
+    <p>Configure background music track</p>
     
     <h3>YouTube Video ID:</h3>
     <input type="text" id="youtube-id" value="rog8ou-ZepE" placeholder="Enter YouTube video ID">
-    <p style="font-size: 12px;">Default: Upbeat carnival music</p>
+    <p style="font-size: 12px;">Default: Cyberpunk ambient</p>
     
     <div style="margin: 20px 0;">
-        <button class="btn-small btn-blue" onclick="testMusic()">▶️ TEST MUSIC</button>
+        <button class="btn-small btn-blue" onclick="testMusic()">▶️ TEST</button>
         <button class="btn-small btn-red" onclick="stopMusic()">⏹️ STOP</button>
     </div>
     
     <button class="btn-large btn-green" onclick="startGame()">
-        🎮 START GAME!
+        🎮 LAUNCH GAME!
     </button>
 </div>
 
@@ -429,6 +604,17 @@
         </div>
     </div>
 
+    <div id="ammo-display">
+        <div>MAGAZINE: <span id="ammo-count">5/5</span></div>
+        <div id="ammo-bars">
+            <div class="ammo-bar active"></div>
+            <div class="ammo-bar active"></div>
+            <div class="ammo-bar active"></div>
+            <div class="ammo-bar active"></div>
+            <div class="ammo-bar active"></div>
+        </div>
+    </div>
+
     <div id="projectile-selector">
         <button class="projectile-btn" data-type="poop" onclick="selectProjectile('poop')">💩</button>
         <button class="projectile-btn" data-type="baseball" onclick="selectProjectile('baseball')">⚾</button>
@@ -440,37 +626,41 @@
     </div>
 
     <div id="slingshot-base">
-        <svg width="80" height="100" viewBox="0 0 80 100">
-            <path d="M 20 100 L 20 20 Q 20 10, 30 10 L 50 10 Q 60 10, 60 20 L 60 100" 
-                  fill="#8B4513" stroke="#654321" stroke-width="2"/>
-            <ellipse cx="40" cy="10" rx="12" ry="8" fill="#A0522D"/>
+        <!-- Glitchy holographic frame -->
+        <svg width="100" height="120" viewBox="0 0 100 120" style="filter: drop-shadow(0 0 20px #00ff88);">
+            <path d="M 30 120 L 30 30 Q 30 15, 40 15 L 60 15 Q 70 15, 70 30 L 70 120" 
+                  fill="none" stroke="#00ff88" stroke-width="3" opacity="0.6"/>
+            <ellipse cx="50" cy="15" rx="15" ry="10" fill="none" stroke="#00ddff" stroke-width="2" opacity="0.8"/>
+            <!-- Glitch lines -->
+            <line x1="25" y1="40" x2="35" y2="40" stroke="#ff00ff" stroke-width="2" opacity="0.5"/>
+            <line x1="65" y1="60" x2="75" y2="60" stroke="#ff00ff" stroke-width="2" opacity="0.5"/>
         </svg>
     </div>
-    <div id="slingshot-node"></div>
+    <div id="slingshot-hologram"></div>
     <div id="band-l" class="band"></div>
     <div id="band-r" class="band"></div>
 </div>
 
 <!-- LEVEL COMPLETE SCREEN -->
 <div id="level-complete-screen" class="overlay hidden">
-    <h1>🎉 LEVEL COMPLETE! 🎉</h1>
+    <h1>🎉 LEVEL COMPLETE 🎉</h1>
     <div id="level-stats"></div>
     <button class="btn-large btn-green" onclick="nextLevel()">NEXT LEVEL →</button>
 </div>
 
 <!-- GAME OVER SCREEN -->
 <div id="game-over-screen" class="overlay hidden">
-    <h1>⏰ TIME'S UP!</h1>
+    <h1>⏰ TIME EXPIRED</h1>
     <div id="game-over-stats"></div>
-    <button class="btn-large btn-green" onclick="restartGame()">PLAY AGAIN</button>
+    <button class="btn-large btn-green" onclick="restartGame()">RETRY</button>
     <button class="btn-large btn-blue" onclick="location.reload()">MAIN MENU</button>
 </div>
 
 <!-- VICTORY SCREEN -->
 <div id="victory-screen" class="overlay hidden">
-    <h1>🏆 YOU WIN! 🏆</h1>
+    <h1>🏆 SYSTEM COMPLETE 🏆</h1>
     <div id="victory-stats"></div>
-    <button class="btn-large btn-green" onclick="location.reload()">PLAY AGAIN</button>
+    <button class="btn-large btn-green" onclick="location.reload()">RESTART</button>
 </div>
 
 <script>
@@ -478,7 +668,7 @@
 // GAME STATE
 // =========================
 const gameState = {
-    characters: [], // {neutralImg, reactionImg, emoji, zones: {upper, middle, lower}, voices}
+    characters: [],
     currentLevel: 1,
     score: 0,
     combo: 0,
@@ -499,14 +689,18 @@ const gameState = {
     timerInterval: null,
     trajectoryDots: [],
     
-    // Zone editor state
+    // Magazine system
+    ammo: 5,
+    maxAmmo: 5,
+    isReloading: false,
+    
+    // Zone editor
     currentEditingChar: null,
     zoneEditorImage: null,
     markedZones: {},
     currentZoneToMark: 'upper'
 };
 
-// Preset emoji characters
 const presetCharacters = [
     {emoji: '😊', name: 'Happy'},
     {emoji: '😎', name: 'Cool'},
@@ -568,12 +762,12 @@ function generateImageGrid() {
         const slot = document.createElement('div');
         slot.className = 'image-slot';
         slot.innerHTML = `
-            <div class="slot-label">${i === 9 ? '🔥 BOSS' : 'Level ' + (i + 1)}</div>
+            <div class="slot-label">${i === 9 ? '🔥 BOSS' : 'LVL ' + (i + 1)}</div>
             <div style="font-size: 60px; height: 100px; display: flex; align-items: center; justify-content: center;">
                 ${presetCharacters[i].emoji}
             </div>
-            <button class="btn-small" onclick="uploadCharacterImages(${i})">📸 Upload Images</button>
-            <button class="btn-small btn-green" onclick="usePreset(${i})">✓ Use Preset</button>
+            <button class="btn-small" onclick="uploadCharacterImages(${i})">📸 CUSTOM</button>
+            <button class="btn-small btn-green" onclick="usePreset(${i})">✓ PRESET</button>
         `;
         grid.appendChild(slot);
     }
@@ -588,7 +782,7 @@ function usePreset(index) {
         name: preset.name,
         level: index + 1,
         isBoss: index === 9,
-        zones: autoDetectZones(), // Auto for emoji
+        zones: autoDetectZones(),
         voices: { hit: null }
     };
     updateImageSlot(index);
@@ -596,55 +790,61 @@ function usePreset(index) {
 }
 
 function autoDetectZones() {
-    // Default zones for emoji/preset (percentages)
     return {
-        upper: { x: 50, y: 30 },  // Top third
-        middle: { x: 50, y: 50 }, // Middle
-        lower: { x: 50, y: 70 }   // Bottom third
+        upper: { x: 50, y: 30 },
+        middle: { x: 50, y: 50 },
+        lower: { x: 50, y: 70 }
     };
 }
 
 function uploadCharacterImages(index) {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.multiple = true;
+    const neutralInput = document.createElement('input');
+    neutralInput.type = 'file';
+    neutralInput.accept = 'image/*';
     
-    input.onchange = (e) => {
-        const files = Array.from(e.target.files);
-        
-        if (files.length < 2) {
-            alert('Please select 2 images: Neutral and Reaction');
-            return;
-        }
+    neutralInput.onchange = (e) => {
+        const neutralFile = e.target.files[0];
+        if (!neutralFile) return;
         
         const reader1 = new FileReader();
-        const reader2 = new FileReader();
-        
         reader1.onload = (event1) => {
-            reader2.onload = (event2) => {
-                gameState.characters[index] = {
-                    neutralImg: event1.target.result,
-                    reactionImg: event2.target.result,
-                    emoji: null,
-                    name: files[0].name.split('.')[0],
-                    level: index + 1,
-                    isBoss: index === 9,
-                    zones: null, // Will be set in zone editor
-                    voices: { hit: null }
+            const reactionInput = document.createElement('input');
+            reactionInput.type = 'file';
+            reactionInput.accept = 'image/*';
+            
+            setTimeout(() => {
+                alert('Neutral image uploaded! Now select the REACTION image (shown when hit).');
+                reactionInput.click();
+            }, 100);
+            
+            reactionInput.onchange = (e2) => {
+                const reactionFile = e2.target.files[0];
+                if (!reactionFile) return;
+                
+                const reader2 = new FileReader();
+                reader2.onload = (event2) => {
+                    gameState.characters[index] = {
+                        neutralImg: event1.target.result,
+                        reactionImg: event2.target.result,
+                        emoji: null,
+                        name: neutralFile.name.split('.')[0],
+                        level: index + 1,
+                        isBoss: index === 9,
+                        zones: null,
+                        voices: { hit: null }
+                    };
+                    
+                    updateImageSlot(index);
+                    openZoneEditor(index);
                 };
-                
-                updateImageSlot(index);
-                
-                // Open zone editor for this character
-                openZoneEditor(index);
+                reader2.readAsDataURL(reactionFile);
             };
-            reader2.readAsDataURL(files[1]);
         };
-        reader1.readAsDataURL(files[0]);
+        reader1.readAsDataURL(neutralFile);
     };
     
-    input.click();
+    alert('First, select the NEUTRAL image (default state of character).');
+    neutralInput.click();
 }
 
 function updateImageSlot(index) {
@@ -656,19 +856,19 @@ function updateImageSlot(index) {
         
         if (char.neutralImg) {
             slots[index].innerHTML = `
-                <div class="slot-label">${char.isBoss ? '🔥 BOSS' : 'Level ' + char.level}</div>
+                <div class="slot-label">${char.isBoss ? '🔥 BOSS' : 'LVL ' + char.level}</div>
                 <img src="${char.neutralImg}" class="image-preview" alt="Neutral">
                 <img src="${char.reactionImg}" class="image-preview" alt="Reaction">
-                <button class="btn-small btn-blue" onclick="openZoneEditor(${index})">🎯 Edit Zones</button>
-                <button class="btn-small btn-red" onclick="removeCharacter(${index})">✕ Remove</button>
+                <button class="btn-small btn-blue" onclick="openZoneEditor(${index})">🎯 ZONES</button>
+                <button class="btn-small btn-red" onclick="removeCharacter(${index})">✕</button>
             `;
         } else {
             slots[index].innerHTML = `
-                <div class="slot-label">${char.isBoss ? '🔥 BOSS' : 'Level ' + char.level}</div>
+                <div class="slot-label">${char.isBoss ? '🔥 BOSS' : 'LVL ' + char.level}</div>
                 <div style="font-size: 60px; height: 100px; display: flex; align-items: center; justify-content: center;">
                     ${char.emoji}
                 </div>
-                <button class="btn-small btn-red" onclick="removeCharacter(${index})">✕ Remove</button>
+                <button class="btn-small btn-red" onclick="removeCharacter(${index})">✕</button>
             `;
         }
     }
@@ -687,10 +887,9 @@ function checkSetupComplete() {
     const filled = gameState.characters.filter(c => c !== null && c !== undefined).length;
     const btn = document.getElementById('continue-voice-btn');
     
-    // Also check that all custom images have zones marked
     const allHaveZones = gameState.characters.every(char => {
         if (!char) return true;
-        if (char.emoji) return true; // Presets auto-have zones
+        if (char.emoji) return true;
         return char.zones !== null;
     });
     
@@ -720,14 +919,22 @@ function openZoneEditor(charIndex) {
     canvas.src = char.neutralImg;
     modal.style.display = 'flex';
     
-    updateZoneStatus();
-    renderZoneDots();
+    document.querySelectorAll('.zone-dot').forEach(dot => dot.remove());
+    
+    if (char.zones) {
+        setTimeout(() => {
+            updateZoneStatus();
+            renderZoneDots();
+        }, 100);
+    } else {
+        updateZoneStatus();
+    }
 }
 
 function updateZoneStatus() {
     const zones = ['upper', 'middle', 'lower'];
     const zoneNames = {upper: 'UPPER ZONE', middle: 'MIDDLE ZONE', lower: 'LOWER ZONE'};
-    const zoneColors = {upper: '#4CAF50', middle: '#2196F3', lower: '#f44336'};
+    const zoneColors = {upper: '#00ff88', middle: '#00ddff', lower: '#ff0066'};
     
     const markedCount = Object.keys(gameState.markedZones).length;
     
@@ -737,13 +944,12 @@ function updateZoneStatus() {
         document.getElementById('current-zone-name').style.color = zoneColors[gameState.currentZoneToMark];
         document.getElementById('save-zones-btn').disabled = true;
     } else {
-        document.getElementById('zone-status').innerHTML = '<span style="color: #4CAF50;">✓ All zones marked!</span>';
+        document.getElementById('zone-status').innerHTML = '<span style="color: #00ff88;">✓ ALL ZONES MARKED</span>';
         document.getElementById('save-zones-btn').disabled = false;
     }
 }
 
 function renderZoneDots() {
-    // Clear existing dots
     document.querySelectorAll('.zone-dot').forEach(dot => dot.remove());
     
     const canvas = document.getElementById('zone-editor-canvas');
@@ -756,7 +962,6 @@ function renderZoneDots() {
         const dot = document.createElement('div');
         dot.className = `zone-dot ${zone}`;
         
-        // Convert percentage to pixel position relative to canvas
         const x = containerRect.left - container.parentElement.scrollLeft + (rect.width * pos.x / 100) + 10;
         const y = containerRect.top - container.parentElement.scrollTop + (rect.height * pos.y / 100) + 10;
         
@@ -768,7 +973,6 @@ function renderZoneDots() {
     });
 }
 
-// Click handler for zone marking
 document.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('zone-editor-canvas');
     
@@ -790,16 +994,19 @@ function resetZones() {
     gameState.markedZones = {};
     gameState.currentZoneToMark = 'upper';
     updateZoneStatus();
-    renderZoneDots();
+    document.querySelectorAll('.zone-dot').forEach(dot => dot.remove());
+    document.getElementById('save-zones-btn').disabled = true;
 }
 
 function saveZones() {
-    if (gameState.currentEditingChar !== null) {
+    if (gameState.currentEditingChar !== null && Object.keys(gameState.markedZones).length === 3) {
         gameState.characters[gameState.currentEditingChar].zones = {...gameState.markedZones};
         document.getElementById('zone-editor-modal').style.display = 'none';
         
-        // Clear dots
         document.querySelectorAll('.zone-dot').forEach(dot => dot.remove());
+        
+        gameState.markedZones = {};
+        gameState.currentZoneToMark = 'upper';
         
         checkSetupComplete();
     }
@@ -826,23 +1033,23 @@ function generateVoicePanels() {
         
         const displayName = char.name || `Character ${index + 1}`;
         const displayImage = char.neutralImg 
-            ? `<img src="${char.neutralImg}" style="width: 80px; height: 80px; border-radius: 10px; object-fit: cover;">`
+            ? `<img src="${char.neutralImg}" style="width: 80px; height: 80px; border-radius: 5px; object-fit: cover; border: 2px solid #00ff88;">`
             : `<div style="font-size: 60px;">${char.emoji}</div>`;
         
         panel.innerHTML = `
             <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
                 ${displayImage}
                 <div>
-                    <div style="font-size: 20px; font-weight: bold;">${displayName}</div>
-                    <div style="font-size: 14px; opacity: 0.8;">${char.isBoss ? '🔥 BOSS' : 'Level ' + char.level}</div>
+                    <div style="font-size: 20px; font-weight: bold; color: #00ff88;">${displayName}</div>
+                    <div style="font-size: 14px; opacity: 0.8; color: #00ddff;">${char.isBoss ? '🔥 BOSS' : 'Level ' + char.level}</div>
                 </div>
             </div>
             
             <div class="voice-row">
-                <span>Hit Reaction Voice</span>
+                <span style="color: #00ff88;">Hit Reaction Voice</span>
                 <div>
-                    <button class="btn-small" onclick="recordVoice(${index})" id="record-${index}">🎤 Record</button>
-                    <button class="btn-small btn-blue" onclick="playVoice(${index})" id="play-${index}" style="display:none;">▶️ Play</button>
+                    <button class="btn-small" onclick="recordVoice(${index})" id="record-${index}">🎤 REC</button>
+                    <button class="btn-small btn-blue" onclick="playVoice(${index})" id="play-${index}" style="display:none;">▶️</button>
                 </div>
             </div>
         `;
@@ -860,7 +1067,7 @@ async function recordVoice(charIndex) {
         const recorder = new MediaRecorder(stream);
         const chunks = [];
         
-        btn.innerHTML = '⏺️ Recording<span class="recording-indicator"></span>';
+        btn.innerHTML = '⏺️<span class="recording-indicator"></span>';
         btn.disabled = true;
         
         recorder.ondataavailable = e => chunks.push(e.data);
@@ -868,7 +1075,7 @@ async function recordVoice(charIndex) {
             const blob = new Blob(chunks, { type: 'audio/webm' });
             gameState.characters[charIndex].voices.hit = URL.createObjectURL(blob);
             
-            btn.innerHTML = '✓ Recorded';
+            btn.innerHTML = '✓ DONE';
             btn.disabled = false;
             playBtn.style.display = 'inline-block';
             
@@ -879,8 +1086,8 @@ async function recordVoice(charIndex) {
         setTimeout(() => recorder.stop(), 2000);
         
     } catch (err) {
-        alert('Microphone access denied. Using text-to-speech instead.');
-        btn.innerHTML = '🎤 Record';
+        alert('Microphone access denied. Using TTS.');
+        btn.innerHTML = '🎤 REC';
     }
 }
 
@@ -912,6 +1119,7 @@ function startGame() {
     gameState.currentLevel = 1;
     gameState.score = 0;
     gameState.combo = 0;
+    gameState.ammo = gameState.maxAmmo;
     
     startLevel();
 }
@@ -959,7 +1167,6 @@ function spawnCharacter(charData, index) {
     char.className = 'character' + (charData.isBoss ? ' boss' : '');
     char.id = 'char-' + Date.now() + '-' + index;
     
-    // Add images or emoji
     if (charData.neutralImg) {
         char.innerHTML = `
             <img src="${charData.neutralImg}" class="character-img">
@@ -969,12 +1176,10 @@ function spawnCharacter(charData, index) {
         char.innerHTML = `<div class="character-emoji">${charData.emoji}</div>`;
     }
     
-    // Position
     const startX = 20 + Math.random() * 60;
     char.style.left = startX + '%';
     char.style.top = '15%';
     
-    // Needs calculation
     const itemsNeeded = gameState.currentLevel <= 3 ? 2 :
                         gameState.currentLevel <= 6 ? 4 :
                         gameState.currentLevel <= 9 ? 6 : 10;
@@ -986,19 +1191,16 @@ function spawnCharacter(charData, index) {
         needs[zone] = items[Math.floor(Math.random() * items.length)];
     });
     
-    // Needs display
     const needDisplay = document.createElement('div');
     needDisplay.className = 'character-need';
     needDisplay.innerHTML = Object.values(needs).map(item => gameState.projectileEmojis[item]).join(' ');
     char.appendChild(needDisplay);
     
-    // Progress bar
     const progress = document.createElement('div');
     progress.className = 'character-progress';
     progress.innerHTML = '<div class="character-progress-fill" style="width: 0%"></div>';
     char.appendChild(progress);
     
-    // Zone markers (visual guides)
     if (charData.zones) {
         zones.forEach(zone => {
             const marker = document.createElement('div');
@@ -1011,7 +1213,6 @@ function spawnCharacter(charData, index) {
     
     document.getElementById('game-container').appendChild(char);
     
-    // Store character state
     const charState = {
         element: char,
         data: charData,
@@ -1107,14 +1308,47 @@ function updateSuggestions() {
 }
 
 // =========================
-// SLINGSHOT PHYSICS
+// MAGAZINE SYSTEM
+// =========================
+function updateAmmoDisplay() {
+    document.getElementById('ammo-count').innerText = `${gameState.ammo}/${gameState.maxAmmo}`;
+    
+    const bars = document.querySelectorAll('.ammo-bar');
+    bars.forEach((bar, i) => {
+        bar.classList.remove('active', 'reloading');
+        if (i < gameState.ammo) {
+            bar.classList.add('active');
+        }
+    });
+}
+
+function reload() {
+    if (gameState.isReloading) return;
+    
+    gameState.isReloading = true;
+    const bars = document.querySelectorAll('.ammo-bar');
+    
+    bars.forEach(bar => {
+        bar.classList.add('reloading');
+    });
+    
+    setTimeout(() => {
+        gameState.ammo = gameState.maxAmmo;
+        gameState.isReloading = false;
+        updateAmmoDisplay();
+    }, 2000);
+}
+
+// =========================
+// LOB SLINGSHOT PHYSICS (Angry Birds Style)
 // =========================
 let isDragging = false;
+let dragStart = { x: 0, y: 0 };
 let basePos = { x: 0, y: 0 };
 let ghost = null;
 
 function initSlingshot() {
-    const node = document.getElementById('slingshot-node');
+    const node = document.getElementById('slingshot-hologram');
     const rect = node.getBoundingClientRect();
     basePos = { x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
 }
@@ -1123,99 +1357,96 @@ window.addEventListener('resize', initSlingshot);
 setTimeout(initSlingshot, 100);
 
 window.addEventListener('touchstart', e => {
+    if (gameState.isReloading) return;
+    
     const t = e.touches[0];
-    if (t.clientY > window.innerHeight - 200) {
-        isDragging = true;
-        initSlingshot();
-        
-        ghost = document.createElement('div');
-        ghost.className = 'ghost';
-        ghost.innerHTML = gameState.projectileEmojis[gameState.selectedProjectile];
-        document.body.appendChild(ghost);
-    }
+    isDragging = true;
+    dragStart = { x: t.clientX, y: t.clientY };
+    initSlingshot();
+    
+    ghost = document.createElement('div');
+    ghost.className = 'ghost';
+    ghost.innerHTML = gameState.projectileEmojis[gameState.selectedProjectile];
+    document.body.appendChild(ghost);
 });
 
 window.addEventListener('touchmove', e => {
-    if (!isDragging) return;
+    if (!isDragging || gameState.isReloading) return;
     e.preventDefault();
     
     const t = e.touches[0];
-    const dx = t.clientX - basePos.x;
-    const dy = t.clientY - basePos.y;
+    
+    // Calculate pull vector
+    const dx = dragStart.x - t.clientX;
+    const dy = dragStart.y - t.clientY;
+    const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 200);
     const angle = Math.atan2(dy, dx);
-    const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 180);
     
-    const ghostX = basePos.x + Math.cos(angle) * dist;
-    const ghostY = basePos.y + Math.sin(angle) * dist;
+    // Position ghost at pull point
+    ghost.style.left = (dragStart.x - dx) + 'px';
+    ghost.style.top = (dragStart.y - dy) + 'px';
     
-    ghost.style.left = ghostX + 'px';
-    ghost.style.top = ghostY + 'px';
-    
-    updateBands(ghostX, ghostY);
-    showTrajectory(ghostX, ghostY);
+    updateBands(dragStart.x - dx, dragStart.y - dy);
+    showLobTrajectory(dx, dy);
 });
 
 window.addEventListener('touchend', e => {
-    if (!isDragging) return;
+    if (!isDragging || gameState.isReloading) return;
     isDragging = false;
     
     const t = e.changedTouches[0];
-    const vx = (basePos.x - t.clientX) * 0.4;
-    const vy = (basePos.y - t.clientY) * 0.4;
+    const vx = (dragStart.x - t.clientX) * 0.5;
+    const vy = (dragStart.y - t.clientY) * 0.5;
     
     if (ghost) ghost.remove();
     clearBands();
     clearTrajectory();
     
-    if (Math.abs(vy) > 5) {
-        launch(vx, vy);
+    if (Math.abs(vy) > 10 || Math.abs(vx) > 10) {
+        launchLob(vx, vy);
     }
 });
 
-// Mouse support for desktop testing
+// Mouse support
 window.addEventListener('mousedown', e => {
-    if (e.clientY > window.innerHeight - 200) {
-        isDragging = true;
-        initSlingshot();
-        
-        ghost = document.createElement('div');
-        ghost.className = 'ghost';
-        ghost.innerHTML = gameState.projectileEmojis[gameState.selectedProjectile];
-        document.body.appendChild(ghost);
-    }
+    if (gameState.isReloading) return;
+    
+    isDragging = true;
+    dragStart = { x: e.clientX, y: e.clientY };
+    initSlingshot();
+    
+    ghost = document.createElement('div');
+    ghost.className = 'ghost';
+    ghost.innerHTML = gameState.projectileEmojis[gameState.selectedProjectile];
+    document.body.appendChild(ghost);
 });
 
 window.addEventListener('mousemove', e => {
-    if (!isDragging) return;
+    if (!isDragging || gameState.isReloading) return;
     
-    const dx = e.clientX - basePos.x;
-    const dy = e.clientY - basePos.y;
-    const angle = Math.atan2(dy, dx);
-    const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 180);
+    const dx = dragStart.x - e.clientX;
+    const dy = dragStart.y - e.clientY;
     
-    const ghostX = basePos.x + Math.cos(angle) * dist;
-    const ghostY = basePos.y + Math.sin(angle) * dist;
+    ghost.style.left = (dragStart.x - dx) + 'px';
+    ghost.style.top = (dragStart.y - dy) + 'px';
     
-    ghost.style.left = ghostX + 'px';
-    ghost.style.top = ghostY + 'px';
-    
-    updateBands(ghostX, ghostY);
-    showTrajectory(ghostX, ghostY);
+    updateBands(dragStart.x - dx, dragStart.y - dy);
+    showLobTrajectory(dx, dy);
 });
 
 window.addEventListener('mouseup', e => {
-    if (!isDragging) return;
+    if (!isDragging || gameState.isReloading) return;
     isDragging = false;
     
-    const vx = (basePos.x - e.clientX) * 0.4;
-    const vy = (basePos.y - e.clientY) * 0.4;
+    const vx = (dragStart.x - e.clientX) * 0.5;
+    const vy = (dragStart.y - e.clientY) * 0.5;
     
     if (ghost) ghost.remove();
     clearBands();
     clearTrajectory();
     
-    if (Math.abs(vy) > 5) {
-        launch(vx, vy);
+    if (Math.abs(vy) > 10 || Math.abs(vx) > 10) {
+        launchLob(vx, vy);
     }
 });
 
@@ -1243,17 +1474,20 @@ function clearBands() {
     document.getElementById('band-r').style.display = 'none';
 }
 
-function showTrajectory(startX, startY) {
+function showLobTrajectory(vx, vy) {
     clearTrajectory();
     
-    const vx = (basePos.x - startX) * 0.4;
-    const vy = (basePos.y - startY) * 0.4;
+    let px = basePos.x;
+    let py = basePos.y;
+    const gravity = 0.8;
+    let velocityX = vx * 0.5;
+    let velocityY = vy * 0.5;
     
-    let px = basePos.x, py = basePos.y;
-    
-    for (let i = 0; i < 15; i++) {
-        px += vx * 0.8;
-        py += vy * 0.8;
+    // Show only first 8 dots (partial trajectory)
+    for (let i = 0; i < 8; i++) {
+        px += velocityX;
+        py += velocityY;
+        velocityY += gravity;
         
         const dot = document.createElement('div');
         dot.className = 'trajectory-dot';
@@ -1269,26 +1503,45 @@ function clearTrajectory() {
     gameState.trajectoryDots = [];
 }
 
-function launch(vx, vy) {
+function launchLob(vx, vy) {
+    // Check ammo
+    if (gameState.ammo <= 0) {
+        reload();
+        return;
+    }
+    
+    gameState.ammo--;
+    updateAmmoDisplay();
+    
+    // Auto-reload if empty
+    if (gameState.ammo === 0) {
+        reload();
+    }
+    
     const p = document.createElement('div');
     p.className = 'projectile';
     p.innerHTML = gameState.projectileEmojis[gameState.selectedProjectile];
     document.body.appendChild(p);
     
-    let px = basePos.x, py = basePos.y;
+    let px = basePos.x;
+    let py = basePos.y;
     let scale = 1.2;
+    let velocityX = vx * 0.5;
+    let velocityY = vy * 0.5;
+    const gravity = 0.8;
     const projectileType = gameState.selectedProjectile;
     
     const fly = setInterval(() => {
-        px += vx;
-        py += vy;
-        scale -= 0.04;
+        px += velocityX;
+        py += velocityY;
+        velocityY += gravity; // Add gravity for arc
+        scale -= 0.02;
         
         p.style.left = px + 'px';
         p.style.top = py + 'px';
         p.style.transform = `translate(-50%, -50%) scale(${scale}) rotate(${scale * 360}deg)`;
         
-        if (scale <= 0.15 || py < 0 || px < 0 || px > window.innerWidth) {
+        if (scale <= 0.15 || py < 0 || py > window.innerHeight || px < 0 || px > window.innerWidth) {
             clearInterval(fly);
             checkHit(px, py, projectileType);
             p.remove();
@@ -1308,11 +1561,9 @@ function checkHit(x, y, projectileType) {
             continue;
         }
         
-        // Calculate relative position as percentage
         const relX = ((x - rect.left) / rect.width) * 100;
         const relY = ((y - rect.top) / rect.height) * 100;
         
-        // Find closest zone
         let closestZone = null;
         let minDist = Infinity;
         
@@ -1329,8 +1580,8 @@ function checkHit(x, y, projectileType) {
             }
         });
         
-        // Forgiving hit detection - within 30% of character size
-        const hitRadius = 30;
+        // EASIER SCORING: 50% hit radius (was 30%)
+        const hitRadius = 50;
         
         if (minDist <= hitRadius && charState.needs[closestZone] === projectileType) {
             hit = true;
@@ -1340,22 +1591,17 @@ function checkHit(x, y, projectileType) {
             const fill = charState.element.querySelector('.character-progress-fill');
             if (fill) fill.style.width = progress + '%';
             
-            // Show reaction image
             showReaction(charState.element);
-            
-            // Play voice
             playCharacterVoice(charState.data);
             
-            // Score
             const basePoints = closestZone === 'upper' ? 50 : 
                               closestZone === 'middle' ? 100 : 25;
             gameState.combo++;
             const totalPoints = basePoints * gameState.combo;
             gameState.score += totalPoints;
             
-            showFloatingText(x, y, `+${totalPoints}`, '#4CAF50');
+            showFloatingText(x, y, `+${totalPoints}`, '#00ff88');
             
-            // Check if character complete
             if (charState.hits >= charState.totalNeeded) {
                 charState.element.style.transition = 'all 0.5s';
                 charState.element.style.transform = 'scale(0) rotate(360deg)';
@@ -1371,16 +1617,15 @@ function checkHit(x, y, projectileType) {
                 }, 500);
                 
                 gameState.score += 500;
-                showFloatingText(rect.left + rect.width/2, rect.top, 'CLEARED! +500', '#FFD700');
+                showFloatingText(rect.left + rect.width/2, rect.top, 'CLEARED! +500', '#ff00ff');
             }
             
             updateUI();
             break;
             
         } else if (minDist <= hitRadius) {
-            // Hit character but wrong projectile
             gameState.combo = 0;
-            showFloatingText(x, y, 'WRONG!', '#f44336');
+            showFloatingText(x, y, 'WRONG!', '#ff0066');
             updateUI();
             hit = true;
             break;
@@ -1419,6 +1664,7 @@ function showFloatingText(x, y, text, color) {
     ft.style.left = x + 'px';
     ft.style.top = y + 'px';
     ft.style.color = color;
+    ft.style.textShadow = `0 0 20px ${color}`;
     document.body.appendChild(ft);
     
     setTimeout(() => ft.remove(), 1500);
@@ -1428,6 +1674,7 @@ function updateUI() {
     document.getElementById('score-display').innerText = `SCORE: ${gameState.score}`;
     document.getElementById('combo-display').innerText = `COMBO: ${gameState.combo}x`;
     document.getElementById('level-display').innerText = `LEVEL: ${gameState.currentLevel}`;
+    updateAmmoDisplay();
 }
 
 // =========================
@@ -1440,9 +1687,9 @@ function levelComplete() {
     gameState.score += bonusTime;
     
     document.getElementById('level-stats').innerHTML = `
-        <h2 style="font-size: 36px; margin: 20px 0;">Level ${gameState.currentLevel} Complete!</h2>
-        <p style="font-size: 24px;">Score: ${gameState.score}</p>
-        <p style="font-size: 20px;">Time Bonus: +${bonusTime}</p>
+        <h2 style="font-size: 36px; margin: 20px 0; color: #00ff88;">LEVEL ${gameState.currentLevel} COMPLETE</h2>
+        <p style="font-size: 24px; color: #00ddff;">SCORE: ${gameState.score}</p>
+        <p style="font-size: 20px; color: #ff00ff;">TIME BONUS: +${bonusTime}</p>
     `;
     
     document.getElementById('level-complete-screen').classList.remove('hidden');
@@ -1452,6 +1699,7 @@ function nextLevel() {
     document.getElementById('level-complete-screen').classList.add('hidden');
     
     gameState.currentLevel++;
+    gameState.ammo = gameState.maxAmmo;
     
     if (gameState.currentLevel > 10) {
         victory();
@@ -1464,8 +1712,8 @@ function gameOver() {
     clearCharacters();
     
     document.getElementById('game-over-stats').innerHTML = `
-        <h2 style="font-size: 32px; margin: 20px 0;">You reached Level ${gameState.currentLevel}</h2>
-        <p style="font-size: 28px;">Final Score: ${gameState.score}</p>
+        <h2 style="font-size: 32px; margin: 20px 0; color: #ff0066;">REACHED LEVEL ${gameState.currentLevel}</h2>
+        <p style="font-size: 28px; color: #00ff88;">FINAL SCORE: ${gameState.score}</p>
     `;
     
     document.getElementById('game-over-screen').classList.remove('hidden');
@@ -1475,9 +1723,9 @@ function victory() {
     clearCharacters();
     
     document.getElementById('victory-stats').innerHTML = `
-        <h2 style="font-size: 36px; margin: 20px 0;">ALL LEVELS COMPLETE!</h2>
-        <p style="font-size: 32px;">Final Score: ${gameState.score}</p>
-        <p style="font-size: 24px;">You're a Carnival Champion!</p>
+        <h2 style="font-size: 36px; margin: 20px 0; color: #00ff88;">ALL LEVELS COMPLETE</h2>
+        <p style="font-size: 32px; color: #ff00ff;">FINAL SCORE: ${gameState.score}</p>
+        <p style="font-size: 24px; color: #00ddff;">SYSTEM MASTERED</p>
     `;
     
     document.getElementById('victory-screen').classList.remove('hidden');
@@ -1488,12 +1736,12 @@ function restartGame() {
     gameState.currentLevel = 1;
     gameState.score = 0;
     gameState.combo = 0;
+    gameState.ammo = gameState.maxAmmo;
     startLevel();
 }
 
-// Initialize
 window.addEventListener('load', () => {
-    console.log('🎪 Carnival Wave Shooter v2 Ready!');
+    console.log('⚡ CYBERPUNK CARNIVAL CHAOS INITIALIZED');
 });
 </script>
 </body>
