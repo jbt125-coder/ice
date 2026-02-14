@@ -3,76 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Support ICE?</title>
+    <title>Support ICE? Game</title>
     <style>
         body, html { 
             margin: 0; padding: 0; width: 100%; height: 100%; 
-            overflow: hidden; background: #87CEEB; font-family: 'Comic Sans MS', sans-serif;
+            overflow: hidden; background: #2c3e50; font-family: 'Arial Rounded MT Bold', sans-serif;
             touch-action: none;
         }
-        #game-container { 
-            position: relative; width: 100vw; height: 100vh; 
-            background: linear-gradient(#87CEEB, #2ecc71); 
-        }
+        #game-container { position: relative; width: 100vw; height: 100vh; background: #87CEEB; display: none; }
         
-        /* The ICE Agent */
-        #agent {
-            position: absolute; width: 300px; height: 350px;
-            /* USING YOUR PHOTO */
-            background-image: url('https://output.googleusercontent.com/static/s/80702/983796/generated_image.png');
-            background-size: contain; background-repeat: no-repeat;
-            top: 15%; left: 50%; transform: translateX(-50%);
-            z-index: 5;
-        }
-
-        /* UI Elements */
-        #score-board {
-            position: absolute; top: 40px; width: 100%; text-align: center;
-            font-size: 32px; color: white; text-shadow: 3px 3px 0 #000; z-index: 20;
-        }
-        #ammo-box {
-            position: absolute; bottom: 120px; width: 100%; text-align: center;
-            font-size: 20px; color: white; font-weight: bold;
-        }
-
-        /* Slingshot Visuals */
-        #slingshot-base {
-            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-            width: 80px; height: 80px; border: 4px solid white; border-radius: 50%;
-            background: rgba(255,255,255,0.2); z-index: 10;
-        }
-        .projectile { position: absolute; font-size: 50px; z-index: 15; transform: translate(-50%, -50%); }
-
-        /* Setup Screen */
+        /* Overlays */
         .overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); color: white; display: flex;
+            background: rgba(0,0,0,0.9); color: white; display: flex;
             flex-direction: column; align-items: center; justify-content: center;
-            z-index: 100; text-align: center; padding: 10px; box-sizing: border-box;
+            z-index: 100; text-align: center; padding: 20px; box-sizing: border-box;
+        }
+
+        /* Targets */
+        #target-agent {
+            position: absolute; width: 260px; height: 320px;
+            background-size: contain; background-repeat: no-repeat;
+            top: 15%; left: 50%; transform: translateX(-50%); z-index: 5;
+        }
+
+        /* Slingshot & Physics */
+        #slingshot-node {
+            position: absolute; bottom: 80px; left: 50%;
+            width: 20px; height: 20px; background: #fff; border-radius: 50%;
+            transform: translateX(-50%); z-index: 10;
+        }
+        .band {
+            position: absolute; height: 6px; background: #4d2600;
+            transform-origin: left center; z-index: 9; border-radius: 3px;
+        }
+        .projectile { position: absolute; font-size: 50px; z-index: 15; transform: translate(-50%, -50%); }
+        .ghost { opacity: 0.5; pointer-events: none; position: absolute; font-size: 50px; z-index: 14; transform: translate(-50%, -50%); }
+
+        /* UI */
+        #score-board {
+            position: absolute; top: 50px; width: 100%; text-align: center;
+            font-size: 35px; color: white; text-shadow: 3px 3px 0 #000; z-index: 50;
         }
         button {
-            padding: 12px; margin: 5px; border-radius: 8px; border: none;
-            background: #f1c40f; font-weight: bold; width: 140px;
+            padding: 15px; margin: 5px; border-radius: 12px; border: none;
+            background: #f1c40f; font-weight: bold; width: 80%; font-size: 16px;
         }
-        select { width: 80%; padding: 10px; margin: 15px 0; border-radius: 8px; }
+        #yt-player { position: absolute; width: 1px; height: 1px; opacity: 0; }
     </style>
 </head>
 <body>
 
-<div id="game-container">
-    <div id="score-board">SCORE: 0</div>
-    <div id="agent"></div>
-    <div id="ammo-box">NEXT AMMO: 💩</div>
-    <div id="slingshot-base"></div>
+<div id="yt-player"></div>
+
+<div id="title-screen" class="overlay">
+    <h1>HOW DO YOU SUPPORT ICE?</h1>
+    <p>This app requires access to your:<br>Camera Roll, Microphone, and Audio.</p>
+    <button onclick="requestPermissions()">ALLOW ACCESS & PROCEED</button>
 </div>
 
-<div id="setup-screen" class="overlay">
-    <h1 style="color: #f1c40f;">HOW DO YOU SUPPORT ICE?</h1>
-    <button onclick="loadVoices()" style="width: 80%; background: #3498db;">1. ACTIVATE IPHONE VOICES</button>
-    <select id="voice-select"><option>Select Voice...</option></select>
+<div id="setup-screen" class="overlay" style="display:none;">
+    <h3>1. CHOOSE TARGET PHOTO</h3>
+    <input type="file" id="image-input" accept="image/*" style="margin-bottom:15px;">
     
-    <p>Record your own sounds (Optional):</p>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+    <h3>2. CHOOSE SYSTEM VOICE</h3>
+    <button onclick="initVoices()">REFRESH VOICE LIST</button>
+    <select id="voice-select" style="width:80%; padding:10px; margin:10px;"></select>
+    
+    <h3>3. RECORD CUSTOM SOUNDS</h3>
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
         <button onclick="record(0)">🎤 Ew Gross</button>
         <button onclick="record(1)">🎤 I <3 Shit</button>
         <button onclick="record(2)">🎤 My Balls!</button>
@@ -81,145 +80,180 @@
         <button onclick="record(5)">🎤 Is this Piss?</button>
     </div>
     
-    <button style="background: #2ecc71; width: 80%; margin-top: 25px; font-size: 1.5rem;" onclick="startGame()">PLAY</button>
+    <button style="background:#2ecc71; font-size:22px; margin-top:20px;" onclick="startGame()">START GAME</button>
+</div>
+
+<div id="game-container">
+    <div id="score-board">SCORE: 0</div>
+    <div id="target-agent"></div>
+    <div id="slingshot-node"></div>
+    <div id="band-l" class="band"></div>
+    <div id="band-r" class="band"></div>
 </div>
 
 <script>
+    // YouTube API Setup
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    var player;
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('yt-player', {
+            height: '1', width: '1',
+            videoId: 'rog8ou-ZepE',
+            playerVars: { 'autoplay': 1, 'loop': 1, 'playlist': 'rog8ou-ZepE' },
+            events: { 'onReady': (e) => e.target.mute() } // Start muted for iOS autoplay rules
+        });
+    }
+
     let score = 0;
-    let ammoType = 'poop';
-    const agent = document.getElementById('agent');
-    const voiceSelect = document.getElementById('voice-select');
+    let ammo = 'poop';
     let voices = [];
     let customSounds = [null, null, null, null, null, null];
     const defaults = ["Ew gross", "I love that shit", "Oh my balls", "Ouch", "Thank you", "Is this piss?"];
 
-    function loadVoices() {
+    function requestPermissions() {
+        if(confirm("Allow app to access Camera Roll and Microphone?")) {
+            document.getElementById('title-screen').style.display = 'none';
+            document.getElementById('setup-screen').style.display = 'flex';
+            if (player) player.unMute();
+        }
+    }
+
+    function initVoices() {
         voices = window.speechSynthesis.getVoices();
-        voiceSelect.innerHTML = voices.map((v, i) => `<option value="${i}">${v.name}</option>`).join('');
+        const sel = document.getElementById('voice-select');
+        sel.innerHTML = voices.map((v, i) => `<option value="${i}">${v.name}</option>`).join('');
     }
 
-    async function record(index) {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const mediaRecorder = new MediaRecorder(stream);
-            const chunks = [];
-            mediaRecorder.ondataavailable = e => chunks.push(e.data);
-            mediaRecorder.onstart = () => alert("RECORDING...");
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(chunks, { type: 'audio/wav' });
-                customSounds[index] = URL.createObjectURL(blob);
-                alert("SAVED!");
-            };
-            mediaRecorder.start();
-            setTimeout(() => mediaRecorder.stop(), 1500);
-        } catch(e) { alert("Mic Error!"); }
+    async function record(i) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const rec = new MediaRecorder(stream);
+        const chunks = [];
+        rec.ondataavailable = e => chunks.push(e.data);
+        rec.onstop = () => customSounds[i] = URL.createObjectURL(new Blob(chunks));
+        rec.start();
+        setTimeout(() => { rec.stop(); alert("RECORDED!"); }, 1500);
     }
 
-    function playSound(index) {
-        if (customSounds[index]) {
-            new Audio(customSounds[index]).play();
-        } else {
-            const msg = new SpeechSynthesisUtterance(defaults[index]);
-            msg.voice = voices[voiceSelect.value];
+    function playSfx(i) {
+        if (customSounds[i]) { new Audio(customSounds[i]).play(); }
+        else {
+            const msg = new SpeechSynthesisUtterance(defaults[i]);
+            msg.voice = voices[document.getElementById('voice-select').value];
             window.speechSynthesis.speak(msg);
         }
     }
 
-    let agentX = 50;
-    let agentDir = 1;
+    // Image Upload
+    document.getElementById('image-input').onchange = function(e) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            document.getElementById('target-agent').style.backgroundImage = `url(${event.target.result})`;
+        };
+        reader.readAsDataURL(e.target.files[0]);
+    };
 
     function startGame() {
         document.getElementById('setup-screen').style.display = 'none';
+        document.getElementById('game-container').style.display = 'block';
+        if (player) player.playVideo();
+        runAgent();
+    }
+
+    let agentX = 50, agentDir = 1;
+    function runAgent() {
         setInterval(() => {
-            agentX += 1.2 * agentDir;
-            if (agentX > 75 || agentX < 25) agentDir *= -1;
-            agent.style.left = agentX + '%';
-            // Bobbing effect
-            agent.style.top = (15 + Math.sin(Date.now() / 400) * 2) + '%';
+            agentX += 1.5 * agentDir;
+            if (agentX > 80 || agentX < 20) agentDir *= -1;
+            document.getElementById('target-agent').style.left = agentX + '%';
         }, 20);
     }
 
-    // SLINGSHOT V2 MECHANIC
+    // SNAPPY SLINGSHOT LOGIC
     let isDragging = false;
-    let startX = window.innerWidth / 2;
-    let startY = window.innerHeight - 70;
+    let basePos = { x: window.innerWidth/2, y: window.innerHeight - 90 };
+    let ghost = null;
 
     window.addEventListener('touchstart', e => {
-        const touchY = e.touches[0].clientY;
-        if (touchY > window.innerHeight - 150) {
+        const t = e.touches[0];
+        if (t.clientY > window.innerHeight - 200) {
             isDragging = true;
+            ghost = document.createElement('div');
+            ghost.className = 'ghost';
+            ghost.innerHTML = ammo === 'poop' ? '💩' : '⚾';
+            document.body.appendChild(ghost);
         }
     });
 
     window.addEventListener('touchmove', e => {
         if (!isDragging) return;
-        const touchX = e.touches[0].clientX;
-        const touchY = e.touches[0].clientY;
+        const t = e.touches[0];
+        const dx = t.clientX - basePos.x;
+        const dy = t.clientY - basePos.y;
+        const angle = Math.atan2(dy, dx);
+        const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 150);
+
+        ghost.style.left = (basePos.x + Math.cos(angle)*dist) + 'px';
+        ghost.style.top = (basePos.y + Math.sin(angle)*dist) + 'px';
+
+        updateBands(basePos.x + Math.cos(angle)*dist, basePos.y + Math.sin(angle)*dist);
     });
 
     window.addEventListener('touchend', e => {
         if (!isDragging) return;
         isDragging = false;
+        const t = e.changedTouches[0];
+        const vx = (basePos.x - t.clientX) * 0.35; // HIGH POWER SENSITIVITY
+        const vy = (basePos.y - t.clientY) * 0.35;
         
-        const endX = e.changedTouches[0].clientX;
-        const endY = e.changedTouches[0].clientY;
-        
-        // Calculate power (opposite of drag)
-        const vx = (startX - endX) * 0.2;
-        const vy = (startY - endY) * 0.2;
-        
+        ghost.remove();
+        clearBands();
         if (Math.abs(vy) > 5) launch(vx, vy);
     });
+
+    function updateBands(tx, ty) {
+        const bl = document.getElementById('band-l'), br = document.getElementById('band-r');
+        const angle = Math.atan2(ty - basePos.y, tx - basePos.x);
+        const dist = Math.sqrt((tx-basePos.x)**2 + (ty-basePos.y)**2);
+        [bl, br].forEach(b => {
+            b.style.display = 'block';
+            b.style.left = basePos.x + 'px'; b.style.top = basePos.y + 'px';
+            b.style.width = dist + 'px'; b.style.transform = `rotate(${angle}rad)`;
+        });
+    }
+
+    function clearBands() {
+        document.getElementById('band-l').style.display = 'none';
+        document.getElementById('band-r').style.display = 'none';
+    }
 
     function launch(vx, vy) {
         const p = document.createElement('div');
         p.className = 'projectile';
-        p.innerHTML = ammoType === 'poop' ? '💩' : '💧';
+        p.innerHTML = ammo === 'poop' ? '💩' : '⚾';
         document.body.appendChild(p);
 
-        let curX = startX;
-        let curY = startY;
-        let scale = 1.0;
-        let currentAmmo = ammoType;
-
+        let px = basePos.x, py = basePos.y, s = 1.0, current = ammo;
         let fly = setInterval(() => {
-            curX += vx;
-            curY += vy;
-            scale -= 0.025; // Distant shrinking
-            
-            p.style.left = curX + 'px';
-            p.style.top = curY + 'px';
-            p.style.transform = `translate(-50%, -50%) scale(${scale})`;
-
-            if (scale <= 0.3) {
-                checkHit(curX, curY, currentAmmo);
-                clearInterval(fly);
-                p.remove();
+            px += vx; py += vy; s -= 0.03;
+            p.style.left = px + 'px'; p.style.top = py + 'px';
+            p.style.transform = `translate(-50%, -50%) scale(${s})`;
+            if (s <= 0.2) { 
+                check(px, py, current); clearInterval(fly); p.remove(); 
             }
         }, 20);
-
-        ammoType = ammoType === 'poop' ? 'water' : 'poop';
-        document.getElementById('ammo-box').innerText = "NEXT AMMO: " + (ammoType === 'poop' ? '💩' : '💧');
+        ammo = ammo === 'poop' ? 'ball' : 'poop';
     }
 
-    function checkHit(x, y, type) {
-        const r = agent.getBoundingClientRect();
-        const midX = r.left + r.width / 2;
-
-        // Mouth (Poop) - Centered in head
-        if (type === 'poop' && Math.abs(x - midX) < 55 && Math.abs(y - (r.top + 130)) < 55) {
-            score += 100;
-            playSound(Math.floor(Math.random() * 2));
-        }
-        // Balls (Water) - Bottom of the shirt area
-        else if (type === 'water' && Math.abs(x - midX) < 55 && Math.abs(y - (r.bottom - 40)) < 55) {
-            score += 200;
-            playSound(2 + Math.floor(Math.random() * 2));
-        }
-        // Hands (Water)
-        else if (type === 'water' && Math.abs(x - midX) < 130 && Math.abs(y - (r.top + 200)) < 70) {
-            score += 50;
-            playSound(4 + Math.floor(Math.random() * 2));
+    function check(x, y, type) {
+        const r = document.getElementById('target-agent').getBoundingClientRect();
+        const mx = r.left + r.width/2;
+        if (type === 'poop' && Math.abs(x - mx) < 60 && Math.abs(y - (r.top + 100)) < 60) {
+            score += 100; playSfx(Math.floor(Math.random()*2));
+        } else if (type === 'ball' && Math.abs(x - mx) < 60 && Math.abs(y - (r.bottom - 60)) < 60) {
+            score += 200; playSfx(2 + Math.floor(Math.random()*2));
         }
         document.getElementById('score-board').innerText = "SCORE: " + score;
     }
