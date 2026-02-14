@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyberpunk Carnival - Fixed</title>
+    <title>Carnival Game - V10</title>
     <style>
         * { box-sizing: border-box; }
         body, html { 
@@ -14,32 +14,26 @@
             touch-action: none;
         }
 
-        .overlay {
+        .screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(135deg, #1a0033 0%, #0d0d0d 50%, #001a1a 100%);
             color: #00ff88; display: flex; flex-direction: column; 
-            align-items: center; justify-content: flex-start;
+            align-items: center; justify-content: center;
             z-index: 200; text-align: center; padding: 20px;
             overflow-y: auto;
-            border: 2px solid #ff00ff;
-            box-shadow: inset 0 0 50px rgba(255,0,255,0.3);
         }
 
-        .overlay h1 { 
-            font-size: 42px; margin: 20px 0; 
+        h1 { 
+            font-size: 48px; margin: 20px 0; 
             text-shadow: 0 0 20px #00ff88;
             color: #00ff88;
         }
-        .overlay h2 { 
-            font-size: 28px; margin: 15px 0; 
+        h2 { 
+            font-size: 32px; margin: 15px 0; 
             color: #ff00ff;
             text-shadow: 0 0 10px #ff00ff;
         }
-        .overlay h3 { 
-            font-size: 22px; margin: 10px 0; 
-            color: #00ddff;
-        }
-        .overlay p { font-size: 16px; margin: 10px 0; color: #aaa; }
+        p { font-size: 16px; margin: 10px 0; color: #aaa; }
 
         button {
             padding: 15px 30px; margin: 10px; border-radius: 5px; 
@@ -47,37 +41,86 @@
             background: rgba(0,255,136,0.2);
             font-weight: bold; font-size: 18px; cursor: pointer;
             box-shadow: 0 0 20px rgba(0,255,136,0.5);
-            transition: all 0.2s;
             color: #00ff88;
             font-family: 'Courier New', monospace;
             text-transform: uppercase;
+            transition: all 0.2s;
         }
         button:hover { 
             background: rgba(0,255,136,0.4);
-            box-shadow: 0 0 30px rgba(0,255,136,0.8);
+            transform: scale(1.05);
         }
         button:active { transform: scale(0.95); }
-        button:disabled { 
-            opacity: 0.3; cursor: not-allowed; 
-            box-shadow: none;
-        }
 
-        .btn-small { padding: 8px 15px; font-size: 14px; margin: 5px; }
         .btn-large { padding: 20px 40px; font-size: 24px; }
-        .btn-green { border-color: #00ff88; color: #00ff88; }
-        .btn-red { border-color: #ff0066; color: #ff0066; box-shadow: 0 0 20px rgba(255,0,102,0.5); }
-        .btn-blue { border-color: #00ddff; color: #00ddff; box-shadow: 0 0 20px rgba(0,221,255,0.5); }
+        .btn-small { padding: 8px 15px; font-size: 14px; }
 
-        input[type="file"] {
-            display: none;
-        }
-
-        select, input[type="text"] {
+        input[type="file"] { display: none; }
+        
+        select {
             margin: 10px; padding: 12px; border-radius: 5px;
-            border: 2px solid #00ff88; font-size: 16px; width: 80%; max-width: 400px;
+            border: 2px solid #00ff88; font-size: 16px;
             background: rgba(0,0,0,0.8);
             color: #00ff88;
             font-family: 'Courier New', monospace;
+            width: 90%; max-width: 400px;
+        }
+
+        .slots-grid {
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px; 
+            max-width: 1200px; 
+            width: 100%;
+            margin: 20px 0;
+            padding: 20px;
+        }
+
+        .slot {
+            border: 3px dashed rgba(0,255,136,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .slot-label {
+            font-size: 18px;
+            font-weight: bold;
+            color: #00ff88;
+            margin-bottom: 10px;
+        }
+
+        .preview-box {
+            width: 100%;
+            height: 80px;
+            border: 2px solid #00ff88;
+            border-radius: 5px;
+            margin: 5px 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .preview-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .preview-box.empty {
+            color: #555;
+            font-size: 12px;
+        }
+
+        .warning-box {
+            background: rgba(255,165,0,0.2);
+            border: 2px solid #ffa500;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            max-width: 600px;
         }
 
         #game-container { 
@@ -86,24 +129,9 @@
             display: none; 
         }
 
-        #game-container::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: repeating-linear-gradient(
-                0deg,
-                rgba(0,0,0,0.15),
-                rgba(0,0,0,0.15) 1px,
-                transparent 1px,
-                transparent 2px
-            );
-            pointer-events: none;
-            z-index: 1000;
-        }
-
         #game-ui {
             position: absolute; top: 0; left: 0; width: 100%; padding: 15px;
-            display: flex; justify-content: space-between; align-items: flex-start;
+            display: flex; justify-content: space-between;
             z-index: 50; pointer-events: none;
         }
 
@@ -111,59 +139,26 @@
             background: rgba(0,0,0,0.8); padding: 15px; 
             border-radius: 5px; 
             border: 2px solid #00ff88;
-            box-shadow: 0 0 20px rgba(0,255,136,0.3);
         }
 
-        #score-display { font-size: 24px; font-weight: bold; color: #00ff88; margin: 5px 0; text-shadow: 0 0 10px #00ff88; }
-        #combo-display { font-size: 18px; color: #ff00ff; margin: 5px 0; text-shadow: 0 0 10px #ff00ff; }
-        #level-display { font-size: 20px; font-weight: bold; color: #00ddff; margin: 5px 0; text-shadow: 0 0 10px #00ddff; }
-        #timer-display { font-size: 22px; font-weight: bold; color: #ff0066; margin: 5px 0; text-shadow: 0 0 10px #ff0066; }
-
-        #projectile-selector {
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.9); padding: 10px 20px;
-            border-radius: 10px; display: flex; gap: 10px;
-            border: 2px solid #00ff88;
-            box-shadow: 0 0 30px rgba(0,255,136,0.3); z-index: 60;
-        }
-
-        .projectile-btn {
-            font-size: 40px; padding: 10px; background: rgba(0,255,136,0.1); 
-            border: 3px solid transparent;
-            border-radius: 10px; cursor: pointer; transition: all 0.2s; margin: 0;
-            box-shadow: none; width: 60px; height: 60px; display: flex;
-            align-items: center; justify-content: center;
-        }
-
-        .projectile-btn.active { 
-            border-color: #00ff88; background: rgba(0,255,136,0.3);
-            transform: scale(1.15);
-            box-shadow: 0 0 20px rgba(0,255,136,0.8);
-        }
+        #score-display { font-size: 24px; font-weight: bold; color: #00ff88; }
+        #level-display { font-size: 20px; font-weight: bold; color: #00ddff; }
 
         .character {
             position: absolute; 
-            width: 180px; height: 180px;
+            width: 200px; height: 200px;
             border-radius: 10px; 
-            box-shadow: 0 0 30px rgba(0,255,136,0.5);
-            z-index: 10; transition: all 0.3s;
-            border: 2px solid #00ff88;
-        }
-
-        .character.boss {
-            width: 280px; height: 280px;
-            box-shadow: 0 0 50px rgba(255,0,255,0.8);
-            border: 3px solid #ff00ff;
+            z-index: 10;
         }
 
         .character-img {
             width: 100%; height: 100%; object-fit: cover;
-            border-radius: 10px; position: absolute; top: 0; left: 0;
+            border-radius: 10px; position: absolute;
         }
 
         .character-reaction {
             width: 100%; height: 100%; object-fit: cover;
-            border-radius: 10px; position: absolute; top: 0; left: 0;
+            border-radius: 10px; position: absolute;
             opacity: 0; transition: opacity 0.3s;
         }
 
@@ -172,165 +167,78 @@
         }
 
         .character-emoji {
-            font-size: 140px; text-align: center; 
-            line-height: 180px; position: absolute;
-            width: 100%; height: 100%;
+            font-size: 160px; text-align: center; 
+            line-height: 200px;
             filter: drop-shadow(0 0 20px #00ff88);
         }
 
-        .character.boss .character-emoji {
-            font-size: 220px; line-height: 280px;
+        .hit-circle {
+            position: absolute;
+            width: 300px; height: 300px;
+            border: 5px solid #00ff88;
+            border-radius: 50%;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 40px rgba(0,255,136,0.6);
+            animation: pulse-circle 2s infinite;
         }
 
-        .character-need {
-            position: absolute; top: -50px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.9); padding: 8px 15px; border-radius: 10px;
-            border: 2px solid #ff00ff;
-            box-shadow: 0 0 20px rgba(255,0,255,0.5); font-size: 28px;
-            white-space: nowrap; z-index: 11;
-        }
-
-        .character-progress {
-            position: absolute; bottom: -35px; left: 10%; width: 80%;
-            height: 20px; background: rgba(0,0,0,0.8);
-            border-radius: 5px; overflow: hidden; 
-            border: 2px solid #00ff88;
-            box-shadow: 0 0 10px rgba(0,255,136,0.3);
-        }
-
-        .character-progress-fill {
-            height: 100%; background: linear-gradient(90deg, #00ff88 0%, #00ddff 100%);
-            transition: width 0.3s; border-radius: 3px;
-            box-shadow: 0 0 15px #00ff88;
-        }
-
-        .zone-marker {
-            position: absolute; width: 80px; height: 80px;
-            border: 6px solid; border-radius: 50%;
-            transform: translate(-50%, -50%); pointer-events: none;
-            z-index: 12; animation: zone-glow 2s infinite;
-        }
-
-        .zone-marker.upper { 
-            border-color: #00ff88; 
-            background: rgba(0,255,136,0.5);
-            box-shadow: 0 0 30px #00ff88, inset 0 0 30px #00ff88;
-        }
-        .zone-marker.middle { 
-            border-color: #00ddff; 
-            background: rgba(0,221,255,0.5);
-            box-shadow: 0 0 30px #00ddff, inset 0 0 30px #00ddff;
-        }
-        .zone-marker.lower { 
-            border-color: #ff0066; 
-            background: rgba(255,0,102,0.5);
-            box-shadow: 0 0 30px #ff0066, inset 0 0 30px #ff0066;
-        }
-
-        @keyframes zone-glow {
-            0%, 100% { opacity: 0.9; transform: translate(-50%, -50%) scale(1); }
-            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+        @keyframes pulse-circle {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
         }
 
         .projectile { 
             position: absolute; font-size: 50px; z-index: 45; 
             transform: translate(-50%, -50%); 
-            filter: drop-shadow(0 0 15px #00ff88);
         }
 
-        .floating-text {
-            position: absolute; font-size: 36px; font-weight: bold;
-            z-index: 100; pointer-events: none; animation: float-up 1.5s ease-out;
+        .ghost { 
+            opacity: 0.5; position: absolute; 
+            font-size: 50px; z-index: 44;
+            transform: translate(-50%, -50%); 
         }
 
-        @keyframes float-up {
-            0% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-100px); }
+        .trajectory-dot {
+            position: absolute; width: 10px; height: 10px; 
+            background: #00ff88; border-radius: 50%;
+            z-index: 38; pointer-events: none;
+            box-shadow: 0 0 10px #00ff88;
         }
 
-        .image-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 15px; max-width: 1000px; margin: 20px auto; max-height: 60vh;
-            overflow-y: auto; padding: 20px; width: 100%;
+        .band {
+            position: absolute; height: 4px; 
+            background: #00ff88;
+            transform-origin: left center;
+            z-index: 39; display: none;
         }
 
-        .image-slot {
-            border: 3px dashed rgba(0,255,136,0.3); border-radius: 10px;
-            padding: 15px; text-align: center; background: rgba(0,0,0,0.5);
-            transition: all 0.3s;
+        #slingshot-node {
+            position: absolute; bottom: 80px; left: 50%;
+            width: 30px; height: 30px; 
+            background: radial-gradient(circle, #00ff88, transparent);
+            border-radius: 50%;
+            transform: translateX(-50%);
+            z-index: 41; 
+            box-shadow: 0 0 30px #00ff88;
         }
 
-        .image-slot.filled {
-            border: 3px solid #00ff88; 
-            background: rgba(0,255,136,0.1);
-            box-shadow: 0 0 20px rgba(0,255,136,0.3);
-        }
-
-        .image-preview {
-            width: 100%; height: 80px; object-fit: cover;
-            border-radius: 5px; margin: 5px 0;
-            border: 2px solid #00ff88;
-        }
-
-        .slot-label {
-            font-size: 16px; font-weight: bold; margin: 5px 0;
-            color: #00ff88;
-            text-shadow: 0 0 10px #00ff88;
-        }
-
-        .upload-status {
-            font-size: 12px; color: #00ddff; margin: 5px 0;
-            min-height: 15px;
-        }
-
-        .voice-panel {
-            background: rgba(0,0,0,0.7); padding: 15px;
-            border-radius: 10px; margin: 10px; max-width: 600px; width: 100%;
-            border: 2px solid #00ff88;
-            box-shadow: 0 0 20px rgba(0,255,136,0.3);
-        }
-
-        .voice-row {
-            display: flex; align-items: center; justify-content: space-between;
-            margin: 10px 0; padding: 10px; background: rgba(0,255,136,0.1);
-            border-radius: 5px; flex-wrap: wrap;
-        }
-
-        .recording-indicator {
-            display: inline-block; width: 12px; height: 12px;
-            background: #ff0066; border-radius: 50%; margin-left: 10px;
-            animation: blink 1s infinite;
-            box-shadow: 0 0 10px #ff0066;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        .permission-status {
-            padding: 15px; margin: 20px auto; max-width: 500px;
-            background: rgba(0,255,136,0.1); border: 2px solid #00ff88;
-            border-radius: 10px; font-size: 14px;
-        }
-
-        .permission-status.denied {
-            background: rgba(255,0,102,0.1); border-color: #ff0066;
-            color: #ff0066;
-        }
-
-        .bonus-plate {
+        .plate {
             position: absolute;
             width: 60px; height: 60px;
             background: radial-gradient(circle, #ffffff, #cccccc);
             border-radius: 50%;
             border: 3px solid #666;
             box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-            cursor: crosshair;
-            z-index: 10;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
-        .bonus-plate.broken {
+        .plate:hover {
+            transform: scale(1.1);
+        }
+
+        .plate.broken {
             animation: shatter 0.3s forwards;
         }
 
@@ -339,136 +247,66 @@
             100% { transform: scale(0.3) rotate(180deg); opacity: 0; }
         }
 
-        .laser-dot {
-            position: absolute;
-            width: 15px; height: 15px;
-            background: radial-gradient(circle, #ff0000, transparent);
-            border-radius: 50%;
-            box-shadow: 0 0 20px #ff0000;
-            pointer-events: none;
-            z-index: 100;
+        .voice-panel {
+            background: rgba(0,0,0,0.7);
+            border: 2px solid #00ff88;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            width: 90%;
+            max-width: 600px;
         }
 
-        .cowboy-target {
-            position: absolute;
-            width: 80px; height: 120px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            cursor: crosshair;
-            z-index: 10;
-            transition: all 0.2s;
-        }
-
-        .cowboy-target.hit {
-            animation: fall-down 0.5s forwards;
-        }
-
-        @keyframes fall-down {
-            0% { transform: rotate(0deg); opacity: 1; }
-            100% { transform: rotate(90deg) translateY(50px); opacity: 0; }
-        }
-
-        #yt-player { position: absolute; width: 1px; height: 1px; opacity: 0; }
         .hidden { display: none !important; }
-
-        ::-webkit-scrollbar { width: 10px; }
-        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.5); border-radius: 5px; }
-        ::-webkit-scrollbar-thumb { background: rgba(0,255,136,0.5); border-radius: 5px; }
-
-        #instruction-overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.95);
-            padding: 40px;
-            border: 3px solid #00ff88;
-            border-radius: 15px;
-            z-index: 150;
-            text-align: center;
-            box-shadow: 0 0 50px rgba(0,255,136,0.5);
-        }
-
-        .swipe-indicator {
-            font-size: 60px;
-            animation: swipe-demo 2s infinite;
-        }
-
-        @keyframes swipe-demo {
-            0%, 100% { transform: translateX(0); }
-            50% { transform: translateX(30px); }
-        }
     </style>
 </head>
 <body>
 
-<div id="yt-player"></div>
-
-<!-- WELCOME SCREEN -->
-<div id="welcome-screen" class="overlay">
-    <h1>⚡ CYBERPUNK CARNIVAL ⚡</h1>
-    <p style="color: #ff00ff;">Easy Mode - Dystopian Shooter</p>
-    
-    <div class="permission-status" id="mic-status">
-        <p><b>🎤 MICROPHONE ACCESS</b></p>
-        <p id="mic-status-text">Click below to request microphone access for voice recordings</p>
-    </div>
-    
-    <button class="btn-large btn-blue" onclick="requestMicPermission()">REQUEST MICROPHONE</button>
-    <button class="btn-large btn-green" onclick="showSetup()">CONTINUE TO SETUP</button>
+<!-- TITLE SCREEN -->
+<div id="title-screen" class="screen">
+    <h1>🎪 CARNIVAL GAME - V10 🎪</h1>
+    <button class="btn-large" onclick="showImageSetup()">START SETUP</button>
 </div>
 
-<!-- SETUP SCREEN -->
-<div id="setup-screen" class="overlay hidden">
-    <h2>📸 CONFIGURE TARGETS</h2>
-    <p>For each level: Use preset emoji OR upload 2 custom images</p>
-    <p style="font-size: 14px; color: #00ddff;">
-        <b>Custom Images:</b> Upload Neutral image, then Reaction image (shows 0.5s when hit)
-    </p>
+<!-- IMAGE SETUP SCREEN -->
+<div id="image-setup-screen" class="screen hidden">
+    <h2>STEP 1: UPLOAD IMAGES</h2>
+    <p>Upload Neutral & Reaction images for each level</p>
     
-    <div class="image-grid" id="image-grid"></div>
+    <div class="slots-grid" id="slots-grid"></div>
     
-    <button class="btn-large btn-green" onclick="showVoiceSetup()" id="continue-voice-btn" disabled>
-        PROCEED TO AUDIO CONFIG →
-    </button>
+    <div class="warning-box">
+        <p style="color: #ffa500; font-size: 18px; font-weight: bold;">⚠️ MORE FUN WITH YOUR OWN IMAGES!</p>
+        <p style="color: #fff;">Upload photos to personalize your game experience</p>
+    </div>
+    
+    <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+        <button class="btn-large" onclick="continueWithEmojis()">CONTINUE WITH EMOJIS</button>
+        <button class="btn-large" onclick="continueWithImages()" id="images-ready-btn" style="background: rgba(255,215,0,0.3); border-color: #ffd700;">
+            UPLOADED IMAGES READY - CONTINUE
+        </button>
+    </div>
 </div>
 
-<!-- VOICE SETUP SCREEN -->
-<div id="voice-setup-screen" class="overlay hidden">
-    <h2>🎤 CONFIGURE AUDIO RESPONSES</h2>
-    <p>Record voice reactions (optional - will use TTS if skipped)</p>
+<!-- AUDIO SETUP SCREEN -->
+<div id="audio-setup-screen" class="screen hidden">
+    <h2>STEP 2: AUDIO SETUP</h2>
+    <p>Record custom voice OR choose text-to-speech voice</p>
     
-    <div class="permission-status" id="voice-mic-status" style="display:none;">
-        <p>⚠️ Microphone access needed to record voices</p>
-        <button class="btn-small btn-blue" onclick="requestMicPermission()">REQUEST ACCESS</button>
-    </div>
+    <div id="audio-panels"></div>
     
-    <div style="max-height: 70vh; overflow-y: auto; width: 100%; max-width: 700px;">
-        <div id="voice-panels"></div>
-    </div>
-    
-    <button class="btn-large btn-green" onclick="showMusicSetup()">
-        PROCEED TO MUSIC CONFIG →
-    </button>
+    <button class="btn-large" onclick="startPlateBonus()">CONTINUE TO BONUS →</button>
 </div>
 
-<!-- MUSIC SETUP SCREEN -->
-<div id="music-setup-screen" class="overlay hidden">
-    <h2>🎵 BACKGROUND AUDIO</h2>
-    <p>Configure background music track</p>
+<!-- PLATE BONUS SCREEN -->
+<div id="plate-bonus-screen" class="screen hidden">
+    <h1>🎯 BONUS: BREAK THE PLATES!</h1>
+    <p style="font-size: 24px; color: #ff00ff;">TAP PLATES TO BREAK THEM</p>
+    <div id="plates-broken" style="font-size: 32px; margin: 20px 0;">0 / 10</div>
     
-    <h3>YouTube Video ID:</h3>
-    <input type="text" id="youtube-id" value="rog8ou-ZepE" placeholder="Enter YouTube video ID">
-    <p style="font-size: 12px;">Default: Cyberpunk ambient</p>
+    <div id="plates-container" style="position: relative; width: 90%; max-width: 800px; height: 400px; background: rgba(0,0,0,0.5); border-radius: 10px; border: 2px solid #00ff88;"></div>
     
-    <div style="margin: 20px 0;">
-        <button class="btn-small btn-blue" onclick="testMusic()">▶️ TEST</button>
-        <button class="btn-small btn-red" onclick="stopMusic()">⏹️ STOP</button>
-    </div>
-    
-    <button class="btn-large btn-green" onclick="startGame()">
-        🎮 LAUNCH GAME!
-    </button>
+    <button class="btn-large hidden" id="plates-complete-btn" onclick="startMainGame()">START MAIN GAME →</button>
 </div>
 
 <!-- GAME CONTAINER -->
@@ -476,64 +314,29 @@
     <div id="game-ui">
         <div id="left-ui">
             <div id="score-display">SCORE: 0</div>
-            <div id="combo-display">COMBO: 0x</div>
         </div>
         <div id="right-ui">
             <div id="level-display">LEVEL: 1</div>
-            <div id="timer-display">TIME: 60</div>
         </div>
     </div>
 
-    <div id="projectile-selector">
-        <button class="projectile-btn" data-type="poop" onclick="selectProjectile('poop')">💩</button>
-        <button class="projectile-btn" data-type="baseball" onclick="selectProjectile('baseball')">⚾</button>
-        <button class="projectile-btn active" data-type="candy" onclick="selectProjectile('candy')">🍬</button>
-        <button class="projectile-btn" data-type="toy" onclick="selectProjectile('toy')">🧸</button>
-        <button class="projectile-btn" data-type="gift" onclick="selectProjectile('gift')">🎁</button>
-        <button class="projectile-btn" data-type="ball" onclick="selectProjectile('ball')">⚽</button>
-        <button class="projectile-btn" data-type="balloon" onclick="selectProjectile('balloon')">🎈</button>
-    </div>
-
-    <div id="instruction-overlay" class="hidden">
-        <h2 style="color: #00ff88;">HOW TO PLAY</h2>
-        <div class="swipe-indicator">👉</div>
-        <p style="font-size: 18px; color: #aaa; max-width: 300px;">
-            SWIPE FORWARD anywhere on screen to shoot!<br><br>
-            Aim at the glowing circles.<br>
-            Level 1: ANY HIT SCORES!
-        </p>
-        <button class="btn-large btn-green" onclick="hideInstructions()">GOT IT!</button>
-    </div>
+    <div id="slingshot-node"></div>
+    <div id="band-l" class="band"></div>
+    <div id="band-r" class="band"></div>
 </div>
 
-<!-- BONUS: PLATE SMASH -->
-<div id="bonus-plates-screen" class="overlay hidden">
-    <h1>🎯 BONUS: PLATE SMASH</h1>
-    <p style="font-size: 24px; color: #ff00ff;">SMASH 100 PLATES!</p>
-    <div id="bonus-score" style="font-size: 32px; color: #00ff88; margin: 20px 0;">0 / 100</div>
-    <div id="plates-container" style="position: relative; width: 100%; height: 400px; background: rgba(0,0,0,0.5); border-radius: 10px; margin: 20px 0;"></div>
-</div>
-
-<!-- LEVEL COMPLETE SCREEN -->
-<div id="level-complete-screen" class="overlay hidden">
-    <h1>🎉 LEVEL COMPLETE 🎉</h1>
+<!-- LEVEL COMPLETE -->
+<div id="level-complete-screen" class="screen hidden">
+    <h1>🎉 LEVEL COMPLETE! 🎉</h1>
     <div id="level-stats"></div>
-    <button class="btn-large btn-green" onclick="nextLevel()">NEXT LEVEL →</button>
+    <button class="btn-large" onclick="nextLevel()">NEXT LEVEL →</button>
 </div>
 
-<!-- GAME OVER SCREEN -->
-<div id="game-over-screen" class="overlay hidden">
-    <h1>⏰ TIME EXPIRED</h1>
-    <div id="game-over-stats"></div>
-    <button class="btn-large btn-green" onclick="restartGame()">RETRY</button>
-    <button class="btn-large btn-blue" onclick="location.reload()">MAIN MENU</button>
-</div>
-
-<!-- VICTORY SCREEN -->
-<div id="victory-screen" class="overlay hidden">
-    <h1>🏆 SYSTEM COMPLETE 🏆</h1>
+<!-- VICTORY -->
+<div id="victory-screen" class="screen hidden">
+    <h1>🏆 GAME COMPLETE! 🏆</h1>
     <div id="victory-stats"></div>
-    <button class="btn-large btn-green" onclick="location.reload()">RESTART</button>
+    <button class="btn-large" onclick="location.reload()">PLAY AGAIN</button>
 </div>
 
 <script>
@@ -544,776 +347,564 @@ const gameState = {
     characters: [],
     currentLevel: 1,
     score: 0,
-    combo: 0,
-    timeLeft: 60,
     activeCharacters: [],
-    selectedProjectile: 'candy',
-    projectileEmojis: {
-        poop: '💩', baseball: '⚾', candy: '🍬', 
-        toy: '🧸', gift: '🎁', ball: '⚽', balloon: '🎈'
-    },
-    zoneNeeds: {
-        upper: ['candy', 'gift', 'balloon'],
-        middle: ['toy', 'gift', 'ball'],
-        lower: ['poop', 'baseball']
-    },
-    musicId: 'rog8ou-ZepE',
-    player: null,
-    timerInterval: null,
-    micPermission: false,
-    currentUploadIndex: null,
-    currentUploadStage: null // 'neutral' or 'reaction'
+    trajectoryDots: [],
+    voices: [],
+    usingEmojis: false
 };
 
-const presetCharacters = [
-    {emoji: '😊', name: 'Happy'},
-    {emoji: '😎', name: 'Cool'},
-    {emoji: '🤠', name: 'Cowboy'},
-    {emoji: '🤖', name: 'Robot'},
-    {emoji: '👽', name: 'Alien'},
-    {emoji: '🐶', name: 'Dog'},
-    {emoji: '🐱', name: 'Cat'},
-    {emoji: '🦁', name: 'Lion'},
-    {emoji: '🐼', name: 'Panda'},
-    {emoji: '🐸', name: 'Frog'}
-];
+const presetEmojis = ['😊','😎','🤠','🤖','👽','🐶','🐱','🦁','🐼','🐸'];
 
-// =========================
-// MICROPHONE PERMISSION
-// =========================
-async function requestMicPermission() {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        stream.getTracks().forEach(track => track.stop()); // Stop immediately after permission
-        
-        gameState.micPermission = true;
-        document.getElementById('mic-status').classList.remove('denied');
-        document.getElementById('mic-status-text').innerText = '✓ Microphone access granted! You can record custom voices.';
-        
-    } catch (err) {
-        gameState.micPermission = false;
-        const status = document.getElementById('mic-status');
-        status.classList.add('denied');
-        document.getElementById('mic-status-text').innerText = '✗ Microphone access denied. Will use text-to-speech instead.';
-    }
+// Load voices
+function loadVoices() {
+    gameState.voices = window.speechSynthesis.getVoices();
+    if (gameState.voices.length === 0) setTimeout(loadVoices, 100);
+}
+loadVoices();
+if (window.speechSynthesis.onvoiceschanged !== undefined) {
+    window.speechSynthesis.onvoiceschanged = loadVoices;
 }
 
 // =========================
-// YOUTUBE API
+// IMAGE SETUP
 // =========================
-var tag = document.createElement('script');
-tag.src = "https://www.youtube.com/iframe_api";
-document.head.appendChild(tag);
-
-function onYouTubeIframeAPIReady() {
-    gameState.player = new YT.Player('yt-player', {
-        height: '1', width: '1',
-        videoId: gameState.musicId,
-        playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': gameState.musicId },
-        events: { 
-            'onReady': (e) => e.target.setVolume(30)
-        }
-    });
+function showImageSetup() {
+    document.getElementById('title-screen').classList.add('hidden');
+    document.getElementById('image-setup-screen').classList.remove('hidden');
+    generateSlots();
 }
 
-function testMusic() {
-    const id = document.getElementById('youtube-id').value.trim();
-    if (gameState.player && id) {
-        gameState.player.loadVideoById(id);
-        gameState.player.playVideo();
-        gameState.musicId = id;
-    }
-}
-
-function stopMusic() {
-    if (gameState.player) gameState.player.pauseVideo();
-}
-
-// =========================
-// SETUP FLOW
-// =========================
-function showSetup() {
-    document.getElementById('welcome-screen').classList.add('hidden');
-    document.getElementById('setup-screen').classList.remove('hidden');
-    generateImageGrid();
-}
-
-function generateImageGrid() {
-    const grid = document.getElementById('image-grid');
+function generateSlots() {
+    const grid = document.getElementById('slots-grid');
     grid.innerHTML = '';
     
     for (let i = 0; i < 10; i++) {
         const slot = document.createElement('div');
-        slot.className = 'image-slot';
-        slot.id = `slot-${i}`;
+        slot.className = 'slot';
+        
         slot.innerHTML = `
-            <div class="slot-label">${i === 9 ? '🔥 BOSS' : 'LVL ' + (i + 1)}</div>
-            <div style="font-size: 60px; height: 100px; display: flex; align-items: center; justify-content: center;">
-                ${presetCharacters[i].emoji}
+            <div class="slot-label">${i === 9 ? '🔥 BOSS LVL 10' : 'LEVEL ' + (i + 1)}</div>
+            
+            <div class="preview-box empty" id="neutral-preview-${i}">
+                <span>Neutral Image</span>
             </div>
-            <div class="upload-status" id="status-${i}"></div>
-            <button class="btn-small btn-blue" onclick="startImageUpload(${i}, 'neutral')">📸 NEUTRAL IMG</button>
-            <button class="btn-small btn-blue" onclick="startImageUpload(${i}, 'reaction')">📸 REACTION IMG</button>
-            <button class="btn-small btn-green" onclick="usePreset(${i})">✓ USE PRESET</button>
+            <button class="btn-small" onclick="uploadImage(${i}, 'neutral')">📸 UPLOAD NEUTRAL</button>
+            
+            <div class="preview-box empty" id="reaction-preview-${i}">
+                <span>Reaction Image</span>
+            </div>
+            <button class="btn-small" onclick="uploadImage(${i}, 'reaction')">📸 UPLOAD REACTION</button>
         `;
+        
         grid.appendChild(slot);
         
-        // Create hidden file inputs
-        const neutralInput = document.createElement('input');
-        neutralInput.type = 'file';
-        neutralInput.accept = 'image/*';
-        neutralInput.id = `neutral-input-${i}`;
-        neutralInput.onchange = (e) => handleImageUpload(e, i, 'neutral');
-        slot.appendChild(neutralInput);
+        // Hidden file inputs
+        ['neutral', 'reaction'].forEach(type => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.id = `${type}-input-${i}`;
+            input.onchange = (e) => handleImageUpload(e, i, type);
+            slot.appendChild(input);
+        });
         
-        const reactionInput = document.createElement('input');
-        reactionInput.type = 'file';
-        reactionInput.accept = 'image/*';
-        reactionInput.id = `reaction-input-${i}`;
-        reactionInput.onchange = (e) => handleImageUpload(e, i, 'reaction');
-        slot.appendChild(reactionInput);
+        // Initialize character data
+        gameState.characters[i] = {
+            neutralImg: null,
+            reactionImg: null,
+            emoji: presetEmojis[i],
+            level: i + 1,
+            isBoss: i === 9,
+            voice: {
+                type: 'tts',
+                text: 'Nice hit!',
+                voiceIndex: 0,
+                blob: null
+            }
+        };
     }
 }
 
-function startImageUpload(index, stage) {
-    const input = document.getElementById(`${stage}-input-${index}`);
-    input.click();
+function uploadImage(index, type) {
+    document.getElementById(`${type}-input-${index}`).click();
 }
 
-function handleImageUpload(event, index, stage) {
+function handleImageUpload(event, index, type) {
     const file = event.target.files[0];
     if (!file) return;
     
-    const status = document.getElementById(`status-${i}`);
-    status.innerText = `Loading ${stage}...`;
-    status.style.color = '#00ddff';
-    
     const reader = new FileReader();
     reader.onload = (e) => {
-        // Initialize character if not exists
-        if (!gameState.characters[index]) {
-            gameState.characters[index] = {
-                neutralImg: null,
-                reactionImg: null,
-                emoji: null,
-                name: file.name.split('.')[0],
-                level: index + 1,
-                isBoss: index === 9,
-                zones: autoDetectZones(),
-                voices: { hit: null }
-            };
-        }
+        const char = gameState.characters[index];
         
-        // Set the appropriate image
-        if (stage === 'neutral') {
-            gameState.characters[index].neutralImg = e.target.result;
-            status.innerText = '✓ Neutral uploaded';
-            status.style.color = '#00ff88';
+        if (type === 'neutral') {
+            char.neutralImg = e.target.result;
         } else {
-            gameState.characters[index].reactionImg = e.target.result;
-            status.innerText = '✓ Reaction uploaded';
-            status.style.color = '#00ff88';
+            char.reactionImg = e.target.result;
         }
         
-        updateImageSlot(index);
-        checkSetupComplete();
-    };
-    
-    reader.onerror = () => {
-        status.innerText = '✗ Upload failed';
-        status.style.color = '#ff0066';
+        // Update preview
+        const preview = document.getElementById(`${type}-preview-${index}`);
+        preview.classList.remove('empty');
+        preview.innerHTML = `<img src="${e.target.result}" alt="${type}">`;
     };
     
     reader.readAsDataURL(file);
 }
 
-function usePreset(index) {
-    const preset = presetCharacters[index];
-    gameState.characters[index] = {
-        neutralImg: null,
-        reactionImg: null,
-        emoji: preset.emoji,
-        name: preset.name,
-        level: index + 1,
-        isBoss: index === 9,
-        zones: autoDetectZones(),
-        voices: { hit: null }
-    };
-    updateImageSlot(index);
-    checkSetupComplete();
+function continueWithEmojis() {
+    gameState.usingEmojis = true;
+    showAudioSetup();
 }
 
-function autoDetectZones() {
-    return {
-        upper: { x: 50, y: 30 },
-        middle: { x: 50, y: 50 },
-        lower: { x: 50, y: 70 }
-    };
-}
-
-function updateImageSlot(index) {
-    const slot = document.getElementById(`slot-${index}`);
-    const char = gameState.characters[index];
-    
-    if (!char) return;
-    
-    slot.classList.add('filled');
-    
-    if (char.neutralImg || char.reactionImg) {
-        let imagesHtml = '';
-        if (char.neutralImg) {
-            imagesHtml += `<img src="${char.neutralImg}" class="image-preview" alt="Neutral">`;
-        }
-        if (char.reactionImg) {
-            imagesHtml += `<img src="${char.reactionImg}" class="image-preview" alt="Reaction">`;
-        }
-        
-        slot.innerHTML = `
-            <div class="slot-label">${char.isBoss ? '🔥 BOSS' : 'LVL ' + char.level}</div>
-            ${imagesHtml}
-            <div class="upload-status" style="color: #00ff88;">
-                ${char.neutralImg ? '✓ Neutral ' : ''}
-                ${char.reactionImg ? '✓ Reaction' : ''}
-            </div>
-            <button class="btn-small btn-blue" onclick="startImageUpload(${index}, 'neutral')">📸 NEUTRAL</button>
-            <button class="btn-small btn-blue" onclick="startImageUpload(${index}, 'reaction')">📸 REACTION</button>
-            <button class="btn-small btn-red" onclick="removeCharacter(${index})">✕</button>
-        `;
-        
-        // Re-add hidden inputs
-        const neutralInput = document.createElement('input');
-        neutralInput.type = 'file';
-        neutralInput.accept = 'image/*';
-        neutralInput.id = `neutral-input-${index}`;
-        neutralInput.onchange = (e) => handleImageUpload(e, index, 'neutral');
-        slot.appendChild(neutralInput);
-        
-        const reactionInput = document.createElement('input');
-        reactionInput.type = 'file';
-        reactionInput.accept = 'image/*';
-        reactionInput.id = `reaction-input-${index}`;
-        reactionInput.onchange = (e) => handleImageUpload(e, index, 'reaction');
-        slot.appendChild(reactionInput);
-    } else {
-        slot.innerHTML = `
-            <div class="slot-label">${char.isBoss ? '🔥 BOSS' : 'LVL ' + char.level}</div>
-            <div style="font-size: 60px; height: 100px; display: flex; align-items: center; justify-content: center;">
-                ${char.emoji}
-            </div>
-            <button class="btn-small btn-red" onclick="removeCharacter(${index})">✕</button>
-        `;
-    }
-}
-
-function removeCharacter(index) {
-    gameState.characters[index] = null;
-    generateImageGrid();
-    gameState.characters.forEach((char, i) => {
-        if (char) updateImageSlot(i);
-    });
-    checkSetupComplete();
-}
-
-function checkSetupComplete() {
-    const filled = gameState.characters.filter(c => c !== null && c !== undefined).length;
-    const btn = document.getElementById('continue-voice-btn');
-    
-    if (filled === 10) {
-        btn.disabled = false;
-        btn.style.opacity = '1';
-    } else {
-        btn.disabled = true;
-        btn.style.opacity = '0.5';
-    }
+function continueWithImages() {
+    gameState.usingEmojis = false;
+    showAudioSetup();
 }
 
 // =========================
-// VOICE SETUP
+// AUDIO SETUP
 // =========================
-function showVoiceSetup() {
-    document.getElementById('setup-screen').classList.add('hidden');
-    document.getElementById('voice-setup-screen').classList.remove('hidden');
-    
-    if (!gameState.micPermission) {
-        document.getElementById('voice-mic-status').style.display = 'block';
-    }
-    
-    generateVoicePanels();
+function showAudioSetup() {
+    document.getElementById('image-setup-screen').classList.add('hidden');
+    document.getElementById('audio-setup-screen').classList.remove('hidden');
+    generateAudioPanels();
 }
 
-function generateVoicePanels() {
-    const container = document.getElementById('voice-panels');
+function generateAudioPanels() {
+    const container = document.getElementById('audio-panels');
     container.innerHTML = '';
     
-    gameState.characters.forEach((char, index) => {
-        if (!char) return;
-        
+    gameState.characters.forEach((char, i) => {
         const panel = document.createElement('div');
         panel.className = 'voice-panel';
         
-        const displayName = char.name || `Character ${index + 1}`;
-        const displayImage = char.neutralImg 
-            ? `<img src="${char.neutralImg}" style="width: 80px; height: 80px; border-radius: 5px; object-fit: cover; border: 2px solid #00ff88;">`
-            : `<div style="font-size: 60px;">${char.emoji}</div>`;
-        
         panel.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
-                ${displayImage}
-                <div>
-                    <div style="font-size: 20px; font-weight: bold; color: #00ff88;">${displayName}</div>
-                    <div style="font-size: 14px; opacity: 0.8; color: #00ddff;">${char.isBoss ? '🔥 BOSS' : 'Level ' + char.level}</div>
-                </div>
+            <div style="font-size: 18px; font-weight: bold; color: #00ff88; margin-bottom: 10px;">
+                LEVEL ${i + 1} ${char.isBoss ? '(BOSS)' : ''}
             </div>
             
-            <div class="voice-row">
-                <span style="color: #00ff88;">Hit Reaction Voice</span>
-                <div>
-                    <button class="btn-small" onclick="recordVoice(${index})" id="record-${index}">🎤 RECORD</button>
-                    <button class="btn-small btn-blue" onclick="playVoice(${index})" id="play-${index}" style="display:none;">▶️ PLAY</button>
-                </div>
+            <div style="margin: 10px 0;">
+                <label style="color: #aaa;">Select Voice:</label>
+                <select id="voice-select-${i}" style="width: 100%;"></select>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button class="btn-small" onclick="testVoice(${i})">▶️ TEST</button>
+                <button class="btn-small" onclick="recordVoice(${i})" id="rec-${i}">🎤 RECORD</button>
             </div>
         `;
         
         container.appendChild(panel);
+        
+        // Populate voices
+        const select = document.getElementById(`voice-select-${i}`);
+        gameState.voices.forEach((voice, vIdx) => {
+            const option = document.createElement('option');
+            option.value = vIdx;
+            option.textContent = `${voice.name} (${voice.lang})`;
+            select.appendChild(option);
+        });
     });
 }
 
-async function recordVoice(charIndex) {
-    const btn = document.getElementById(`record-${charIndex}`);
-    const playBtn = document.getElementById(`play-${charIndex}`);
+function testVoice(index) {
+    const char = gameState.characters[index];
+    const voiceIdx = parseInt(document.getElementById(`voice-select-${index}`).value);
     
-    if (!gameState.micPermission) {
-        alert('Please grant microphone access first!');
-        await requestMicPermission();
-        return;
-    }
+    char.voice.voiceIndex = voiceIdx;
+    
+    const utterance = new SpeechSynthesisUtterance(char.voice.text);
+    utterance.voice = gameState.voices[voiceIdx];
+    utterance.volume = 1.0;
+    window.speechSynthesis.speak(utterance);
+}
+
+async function recordVoice(index) {
+    const btn = document.getElementById(`rec-${index}`);
     
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         const recorder = new MediaRecorder(stream);
         const chunks = [];
         
-        btn.innerHTML = '⏺️ REC<span class="recording-indicator"></span>';
+        btn.textContent = '⏺️ RECORDING...';
         btn.disabled = true;
         
-        recorder.ondataavailable = e => chunks.push(e.data);
+        recorder.ondataavailable = e => {
+            if (e.data.size > 0) chunks.push(e.data);
+        };
+        
         recorder.onstop = () => {
             const blob = new Blob(chunks, { type: 'audio/webm' });
-            const url = URL.createObjectURL(blob);
-            gameState.characters[charIndex].voices.hit = url;
+            gameState.characters[index].voice.blob = blob;
+            gameState.characters[index].voice.type = 'recorded';
             
-            btn.innerHTML = '✓ RECORDED';
-            btn.disabled = false;
-            btn.style.borderColor = '#00ff88';
-            playBtn.style.display = 'inline-block';
+            btn.textContent = '✓ RECORDED';
+            btn.style.borderColor = '#ffd700';
             
-            stream.getTracks().forEach(track => track.stop());
-            
-            console.log(`Voice recorded for character ${charIndex}:`, url);
+            stream.getTracks().forEach(t => t.stop());
         };
         
         recorder.start();
         setTimeout(() => {
-            recorder.stop();
+            if (recorder.state === 'recording') {
+                recorder.stop();
+                btn.disabled = false;
+            }
         }, 2000);
         
     } catch (err) {
-        console.error('Recording error:', err);
-        alert('Recording failed: ' + err.message);
-        btn.innerHTML = '🎤 RECORD';
-        btn.disabled = false;
+        alert('Microphone not available. Using text-to-speech.');
+        btn.textContent = '🎤 RECORD';
     }
 }
 
-function playVoice(charIndex) {
-    const url = gameState.characters[charIndex].voices.hit;
-    console.log(`Attempting to play voice for character ${charIndex}:`, url);
+// =========================
+// PLATE BONUS
+// =========================
+let platesBroken = 0;
+let plateInterval = null;
+
+function startPlateBonus() {
+    document.getElementById('audio-setup-screen').classList.add('hidden');
+    document.getElementById('plate-bonus-screen').classList.remove('hidden');
     
-    if (url) {
-        const audio = new Audio(url);
-        audio.play().then(() => {
-            console.log('Playback started successfully');
-        }).catch(err => {
-            console.error('Playback error:', err);
-            alert('Playback failed: ' + err.message);
-        });
-    } else {
-        alert('No voice recorded for this character');
+    platesBroken = 0;
+    spawnPlates();
+}
+
+function spawnPlates() {
+    const container = document.getElementById('plates-container');
+    container.innerHTML = '';
+    
+    for (let i = 0; i < 10; i++) {
+        const plate = document.createElement('div');
+        plate.className = 'plate';
+        plate.id = `plate-${i}`;
+        
+        const x = 10 + (i % 5) * 18;
+        const y = 20 + Math.floor(i / 5) * 50;
+        
+        plate.style.left = x + '%';
+        plate.style.top = y + '%';
+        
+        plate.onclick = () => breakPlate(i);
+        
+        container.appendChild(plate);
+        
+        // Animate side to side
+        animatePlate(plate, x);
     }
 }
 
-function showMusicSetup() {
-    document.getElementById('voice-setup-screen').classList.add('hidden');
-    document.getElementById('music-setup-screen').classList.remove('hidden');
+function animatePlate(plate, startX) {
+    let x = startX;
+    let dir = Math.random() > 0.5 ? 1 : -1;
+    
+    const move = setInterval(() => {
+        if (!plate.parentNode) {
+            clearInterval(move);
+            return;
+        }
+        
+        x += 0.3 * dir;
+        
+        if (x > startX + 10 || x < startX - 10) {
+            dir *= -1;
+        }
+        
+        plate.style.left = x + '%';
+    }, 50);
+}
+
+function breakPlate(index) {
+    const plate = document.getElementById(`plate-${index}`);
+    if (!plate || plate.classList.contains('broken')) return;
+    
+    plate.classList.add('broken');
+    platesBroken++;
+    
+    document.getElementById('plates-broken').textContent = `${platesBroken} / 10`;
+    
+    setTimeout(() => plate.remove(), 300);
+    
+    if (platesBroken >= 10) {
+        document.getElementById('plates-complete-btn').classList.remove('hidden');
+    }
 }
 
 // =========================
-// GAME START
+// MAIN GAME
 // =========================
-function startGame() {
-    document.getElementById('music-setup-screen').classList.add('hidden');
+function startMainGame() {
+    document.getElementById('plate-bonus-screen').classList.add('hidden');
     document.getElementById('game-container').style.display = 'block';
-    
-    if (gameState.player) {
-        gameState.player.loadVideoById(gameState.musicId);
-        gameState.player.playVideo();
-    }
     
     gameState.currentLevel = 1;
     gameState.score = 0;
-    gameState.combo = 0;
     
-    // Show instructions
-    document.getElementById('instruction-overlay').classList.remove('hidden');
-}
-
-function hideInstructions() {
-    document.getElementById('instruction-overlay').classList.add('hidden');
     startLevel();
 }
 
 function startLevel() {
     updateUI();
     clearCharacters();
-    
-    gameState.timeLeft = 60; // Easy mode: 60 seconds per level
-    
-    spawnWave();
-    startTimer();
+    spawnCharacter();
 }
 
-function startTimer() {
-    if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+function spawnCharacter() {
+    const charData = gameState.characters[gameState.currentLevel - 1];
     
-    gameState.timerInterval = setInterval(() => {
-        gameState.timeLeft--;
-        document.getElementById('timer-display').innerText = `TIME: ${gameState.timeLeft}`;
-        
-        if (gameState.timeLeft <= 0) {
-            clearInterval(gameState.timerInterval);
-            gameOver();
-        }
-    }, 1000);
-}
-
-function spawnWave() {
-    const char = gameState.characters[gameState.currentLevel - 1];
-    if (!char) return;
-    
-    // Easy mode: always spawn 1 character at a time
-    spawnCharacter(char, 0);
-}
-
-function spawnCharacter(charData, index) {
     const char = document.createElement('div');
-    char.className = 'character' + (charData.isBoss ? ' boss' : '');
-    char.id = 'char-' + Date.now() + '-' + index;
+    char.className = 'character';
+    char.id = 'char-main';
     
-    if (charData.neutralImg) {
+    if (!gameState.usingEmojis && charData.neutralImg) {
         char.innerHTML = `
             <img src="${charData.neutralImg}" class="character-img">
             ${charData.reactionImg ? `<img src="${charData.reactionImg}" class="character-reaction">` : ''}
+            <div class="hit-circle"></div>
         `;
     } else {
-        char.innerHTML = `<div class="character-emoji">${charData.emoji}</div>`;
+        char.innerHTML = `
+            <div class="character-emoji">${charData.emoji}</div>
+            <div class="hit-circle"></div>
+        `;
     }
     
-    // Center position for level 1
-    const startX = gameState.currentLevel === 1 ? 50 : (20 + Math.random() * 60);
-    char.style.left = startX + '%';
-    char.style.top = '20%';
-    
-    // Easy mode: fewer items needed
-    const itemsNeeded = gameState.currentLevel === 1 ? 3 : 
-                        gameState.currentLevel <= 3 ? 4 :
-                        gameState.currentLevel <= 6 ? 6 : 8;
-    
-    const needs = {};
-    const zones = ['upper', 'middle', 'lower'];
-    
-    // Level 1: Show all projectile types as valid
-    if (gameState.currentLevel === 1) {
-        needs.upper = 'candy';
-        needs.middle = 'toy';
-        needs.lower = 'poop';
-    } else {
-        zones.forEach(zone => {
-            const items = gameState.zoneNeeds[zone];
-            needs[zone] = items[Math.floor(Math.random() * items.length)];
-        });
-    }
-    
-    const needDisplay = document.createElement('div');
-    needDisplay.className = 'character-need';
-    if (gameState.currentLevel === 1) {
-        needDisplay.innerHTML = 'ANY HIT SCORES!';
-        needDisplay.style.fontSize = '20px';
-    } else {
-        needDisplay.innerHTML = Object.values(needs).map(item => gameState.projectileEmojis[item]).join(' ');
-    }
-    char.appendChild(needDisplay);
-    
-    const progress = document.createElement('div');
-    progress.className = 'character-progress';
-    progress.innerHTML = '<div class="character-progress-fill" style="width: 0%"></div>';
-    char.appendChild(progress);
-    
-    // Show zone markers
-    if (charData.zones) {
-        zones.forEach(zone => {
-            const marker = document.createElement('div');
-            marker.className = `zone-marker ${zone}`;
-            marker.style.left = charData.zones[zone].x + '%';
-            marker.style.top = charData.zones[zone].y + '%';
-            char.appendChild(marker);
-        });
-    }
+    char.style.left = '50%';
+    char.style.top = '25%';
+    char.style.transform = 'translateX(-50%)';
     
     document.getElementById('game-container').appendChild(char);
     
-    const charState = {
+    gameState.activeCharacters.push({
         element: char,
         data: charData,
-        needs: needs,
         hits: 0,
-        totalNeeded: itemsNeeded,
-        startX: startX,
-        currentX: startX,
-        direction: Math.random() > 0.5 ? 1 : -1,
-        movePattern: gameState.currentLevel === 1 ? 'stationary' : 
-                     gameState.currentLevel <= 3 ? 'slow' : 'normal'
-    };
-    
-    gameState.activeCharacters.push(charState);
-    if (charState.movePattern !== 'stationary') {
-        animateCharacter(charState);
-    }
-}
-
-function animateCharacter(charState) {
-    let frame = 0;
-    const speed = charState.movePattern === 'slow' ? 0.2 : 0.5;
-    
-    const animate = () => {
-        if (!document.getElementById(charState.element.id)) return;
-        
-        frame++;
-        charState.currentX += speed * charState.direction;
-        
-        if (charState.currentX > 80 || charState.currentX < 20) {
-            charState.direction *= -1;
-        }
-        
-        charState.element.style.left = charState.currentX + '%';
-        requestAnimationFrame(animate);
-    };
-    
-    animate();
+        needed: 5
+    });
 }
 
 function clearCharacters() {
-    gameState.activeCharacters.forEach(char => {
-        if (char.element && char.element.parentNode) {
-            char.element.parentNode.removeChild(char.element);
-        }
+    gameState.activeCharacters.forEach(c => {
+        if (c.element && c.element.parentNode) c.element.remove();
     });
     gameState.activeCharacters = [];
 }
 
-// =========================
-// PROJECTILE SELECTION
-// =========================
-function selectProjectile(type) {
-    gameState.selectedProjectile = type;
-    document.querySelectorAll('.projectile-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    document.querySelector(`[data-type="${type}"]`).classList.add('active');
+function updateUI() {
+    document.getElementById('score-display').textContent = `SCORE: ${gameState.score}`;
+    document.getElementById('level-display').textContent = `LEVEL: ${gameState.currentLevel}`;
 }
 
 // =========================
-// EASY SWIPE SHOOTING
+// SLINGSHOT
 // =========================
-let touchStartY = 0;
+let isDragging = false;
+let basePos = { x: 0, y: 0 };
+let ghost = null;
 
-window.addEventListener('touchstart', e => {
-    touchStartY = e.touches[0].clientY;
-});
+function initSlingshot() {
+    const node = document.getElementById('slingshot-node');
+    if (!node) return;
+    const rect = node.getBoundingClientRect();
+    basePos = { x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
+}
 
-window.addEventListener('touchmove', e => {
-    const touchY = e.touches[0].clientY;
-    const deltaY = touchStartY - touchY;
+window.addEventListener('resize', initSlingshot);
+setTimeout(initSlingshot, 100);
+
+function handleStart(e) {
+    const touch = e.touches ? e.touches[0] : e;
+    if (touch.clientY < window.innerHeight / 2) return;
     
-    // Swipe up to shoot
-    if (deltaY > 30) {
-        const touchX = e.touches[0].clientX;
-        shootAtTarget(touchX, touchY);
-        touchStartY = touchY; // Reset to allow rapid fire
+    isDragging = true;
+    initSlingshot();
+    
+    ghost = document.createElement('div');
+    ghost.className = 'ghost';
+    ghost.textContent = '🎯';
+    document.body.appendChild(ghost);
+}
+
+function handleMove(e) {
+    if (!isDragging) return;
+    e.preventDefault();
+    
+    const touch = e.touches ? e.touches[0] : e;
+    
+    ghost.style.left = touch.clientX + 'px';
+    ghost.style.top = touch.clientY + 'px';
+    
+    updateBands(touch.clientX, touch.clientY);
+    showTrajectory(touch.clientX, touch.clientY);
+}
+
+function handleEnd(e) {
+    if (!isDragging) return;
+    isDragging = false;
+    
+    const touch = e.changedTouches ? e.changedTouches[0] : e;
+    
+    const vx = (basePos.x - touch.clientX) * 0.3;
+    const vy = (basePos.y - touch.clientY) * 0.3;
+    
+    if (ghost) ghost.remove();
+    clearBands();
+    clearTrajectory();
+    
+    if (Math.abs(vx) > 5 || Math.abs(vy) > 5) {
+        launch(vx, vy);
     }
-});
+}
 
-// Mouse support
-let mouseDown = false;
-let lastMouseY = 0;
+window.addEventListener('touchstart', handleStart);
+window.addEventListener('touchmove', handleMove);
+window.addEventListener('touchend', handleEnd);
+window.addEventListener('mousedown', handleStart);
+window.addEventListener('mousemove', handleMove);
+window.addEventListener('mouseup', handleEnd);
 
-window.addEventListener('mousedown', e => {
-    mouseDown = true;
-    lastMouseY = e.clientY;
-});
-
-window.addEventListener('mousemove', e => {
-    if (!mouseDown) return;
+function updateBands(tx, ty) {
+    const bl = document.getElementById('band-l');
+    const br = document.getElementById('band-r');
+    if (!bl || !br) return;
     
-    const deltaY = lastMouseY - e.clientY;
+    const angle = Math.atan2(ty - basePos.y, tx - basePos.x);
+    const dist = Math.sqrt((tx - basePos.x)**2 + (ty - basePos.y)**2);
     
-    if (deltaY > 20) {
-        shootAtTarget(e.clientX, e.clientY);
-        lastMouseY = e.clientY;
+    bl.style.display = 'block';
+    bl.style.left = basePos.x + 'px';
+    bl.style.top = basePos.y + 'px';
+    bl.style.width = dist + 'px';
+    bl.style.transform = `rotate(${angle}rad)`;
+    
+    br.style.display = 'block';
+    br.style.left = basePos.x + 'px';
+    br.style.top = basePos.y + 'px';
+    br.style.width = dist + 'px';
+    br.style.transform = `rotate(${angle}rad)`;
+}
+
+function clearBands() {
+    const bl = document.getElementById('band-l');
+    const br = document.getElementById('band-r');
+    if (bl) bl.style.display = 'none';
+    if (br) br.style.display = 'none';
+}
+
+function showTrajectory(startX, startY) {
+    clearTrajectory();
+    
+    const vx = (basePos.x - startX) * 0.3;
+    const vy = (basePos.y - startY) * 0.3;
+    
+    let px = basePos.x;
+    let py = basePos.y;
+    let velX = vx;
+    let velY = vy;
+    const gravity = 0.5;
+    
+    for (let i = 0; i < 20; i++) {
+        px += velX;
+        py += velY;
+        velY += gravity;
+        
+        if (py > window.innerHeight) break;
+        
+        const dot = document.createElement('div');
+        dot.className = 'trajectory-dot';
+        dot.style.left = px + 'px';
+        dot.style.top = py + 'px';
+        document.body.appendChild(dot);
+        gameState.trajectoryDots.push(dot);
     }
-});
+}
 
-window.addEventListener('mouseup', () => {
-    mouseDown = false;
-});
+function clearTrajectory() {
+    gameState.trajectoryDots.forEach(d => d.remove());
+    gameState.trajectoryDots = [];
+}
 
-function shootAtTarget(x, y) {
+function launch(vx, vy) {
     const p = document.createElement('div');
     p.className = 'projectile';
-    p.innerHTML = gameState.projectileEmojis[gameState.selectedProjectile];
-    p.style.left = x + 'px';
-    p.style.top = y + 'px';
+    p.textContent = '🎯';
     document.body.appendChild(p);
     
-    const projectileType = gameState.selectedProjectile;
-    
-    // Animate upward
-    let currentY = y;
-    let scale = 1.5;
+    let px = basePos.x;
+    let py = basePos.y;
+    let velX = vx;
+    let velY = vy;
+    const gravity = 0.5;
     
     const fly = setInterval(() => {
-        currentY -= 15; // Move up fast
-        scale -= 0.03;
+        px += velX;
+        py += velY;
+        velY += gravity;
         
-        p.style.top = currentY + 'px';
-        p.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        p.style.left = px + 'px';
+        p.style.top = py + 'px';
         
-        if (scale <= 0.2 || currentY < 0) {
+        if (py > window.innerHeight) {
             clearInterval(fly);
-            checkHit(x, currentY, projectileType);
+            checkHit(px, py);
             p.remove();
         }
     }, 20);
 }
 
-function checkHit(x, y, projectileType) {
-    let hit = false;
+function checkHit(x, y) {
+    const charState = gameState.activeCharacters[0];
+    if (!charState) return;
     
-    for (let charState of gameState.activeCharacters) {
-        const rect = charState.element.getBoundingClientRect();
-        
-        // SUPER EASY: Check if anywhere near character (70% hit radius!)
-        if (x < rect.left - 50 || x > rect.right + 50 || y < rect.top - 50 || y > rect.bottom + 50) {
-            continue;
-        }
-        
-        hit = true;
+    const rect = charState.element.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    
+    const dist = Math.sqrt((x - cx)**2 + (y - cy)**2);
+    
+    if (dist < 150) {
         charState.hits++;
         
-        const progress = (charState.hits / charState.totalNeeded) * 100;
-        const fill = charState.element.querySelector('.character-progress-fill');
-        if (fill) fill.style.width = progress + '%';
+        charState.element.classList.add('reacting');
+        setTimeout(() => charState.element.classList.remove('reacting'), 500);
         
-        showReaction(charState.element);
-        playCharacterVoice(charState.data);
+        playVoice(charState.data);
         
-        gameState.combo++;
-        const points = 100 * gameState.combo;
-        gameState.score += points;
+        gameState.score += 100;
+        updateUI();
         
-        showFloatingText(x, y, `+${points}`, '#00ff88');
-        
-        if (charState.hits >= charState.totalNeeded) {
-            charState.element.style.transition = 'all 0.5s';
-            charState.element.style.transform = 'scale(0) rotate(360deg)';
-            charState.element.style.opacity = '0';
-            
-            setTimeout(() => {
-                charState.element.remove();
-                gameState.activeCharacters = gameState.activeCharacters.filter(c => c !== charState);
-                
-                if (gameState.activeCharacters.length === 0) {
-                    levelComplete();
-                }
-            }, 500);
-            
-            gameState.score += 1000;
-            showFloatingText(rect.left + rect.width/2, rect.top, 'CLEARED! +1000', '#ff00ff');
+        if (charState.hits >= charState.needed) {
+            setTimeout(() => levelComplete(), 500);
         }
-        
-        updateUI();
-        break;
-    }
-    
-    if (!hit) {
-        gameState.combo = 0;
-        updateUI();
     }
 }
 
-function showReaction(charElement) {
-    charElement.classList.add('reacting');
-    setTimeout(() => {
-        charElement.classList.remove('reacting');
-    }, 500);
-}
-
-function playCharacterVoice(charData) {
-    const voiceUrl = charData.voices.hit;
-    console.log('Playing voice:', voiceUrl);
+function playVoice(charData) {
+    const voice = charData.voice;
     
-    if (voiceUrl) {
-        const audio = new Audio(voiceUrl);
-        audio.play().catch(err => {
-            console.error('Audio playback error:', err);
-        });
+    if (voice.type === 'recorded' && voice.blob) {
+        const url = URL.createObjectURL(voice.blob);
+        const audio = new Audio(url);
+        audio.volume = 1.0;
+        audio.play().catch(err => console.log('Audio play error:', err));
     } else {
-        const msg = new SpeechSynthesisUtterance('Nice hit!');
-        window.speechSynthesis.speak(msg);
+        const utterance = new SpeechSynthesisUtterance(voice.text);
+        utterance.voice = gameState.voices[voice.voiceIndex] || gameState.voices[0];
+        utterance.volume = 1.0;
+        window.speechSynthesis.speak(utterance);
     }
 }
 
-function showFloatingText(x, y, text, color) {
-    const ft = document.createElement('div');
-    ft.className = 'floating-text';
-    ft.innerText = text;
-    ft.style.left = x + 'px';
-    ft.style.top = y + 'px';
-    ft.style.color = color;
-    ft.style.textShadow = `0 0 20px ${color}`;
-    document.body.appendChild(ft);
-    
-    setTimeout(() => ft.remove(), 1500);
-}
-
-function updateUI() {
-    document.getElementById('score-display').innerText = `SCORE: ${gameState.score}`;
-    document.getElementById('combo-display').innerText = `COMBO: ${gameState.combo}x`;
-    document.getElementById('level-display').innerText = `LEVEL: ${gameState.currentLevel}`;
-}
-
-// =========================
-// LEVEL PROGRESSION
-// =========================
 function levelComplete() {
-    clearInterval(gameState.timerInterval);
-    
-    const bonusTime = gameState.timeLeft * 10;
-    gameState.score += bonusTime;
+    clearCharacters();
     
     document.getElementById('level-stats').innerHTML = `
-        <h2 style="font-size: 36px; margin: 20px 0; color: #00ff88;">LEVEL ${gameState.currentLevel} COMPLETE</h2>
-        <p style="font-size: 24px; color: #00ddff;">SCORE: ${gameState.score}</p>
-        <p style="font-size: 20px; color: #ff00ff;">TIME BONUS: +${bonusTime}</p>
+        <h2 style="color: #00ff88;">LEVEL ${gameState.currentLevel} COMPLETE!</h2>
+        <p style="font-size: 24px;">SCORE: ${gameState.score}</p>
     `;
     
     document.getElementById('level-complete-screen').classList.remove('hidden');
@@ -1327,94 +918,20 @@ function nextLevel() {
     if (gameState.currentLevel > 10) {
         victory();
     } else {
-        // Every 3 levels, show bonus stage
-        if (gameState.currentLevel % 3 === 0) {
-            startBonusPlates();
-        } else {
-            startLevel();
-        }
+        startLevel();
     }
-}
-
-// =========================
-// BONUS STAGE: PLATE SMASH
-// =========================
-function startBonusPlates() {
-    document.getElementById('game-container').style.display = 'none';
-    document.getElementById('bonus-plates-screen').classList.remove('hidden');
-    
-    let platesHit = 0;
-    const platesContainer = document.getElementById('plates-container');
-    platesContainer.innerHTML = '';
-    
-    function spawnPlate() {
-        if (platesHit >= 100) {
-            setTimeout(() => {
-                document.getElementById('bonus-plates-screen').classList.add('hidden');
-                document.getElementById('game-container').style.display = 'block';
-                startLevel();
-            }, 1000);
-            return;
-        }
-        
-        const plate = document.createElement('div');
-        plate.className = 'bonus-plate';
-        plate.style.left = (Math.random() * 80 + 10) + '%';
-        plate.style.top = (Math.random() * 70 + 10) + '%';
-        
-        plate.onclick = () => {
-            plate.classList.add('broken');
-            platesHit++;
-            document.getElementById('bonus-score').innerText = `${platesHit} / 100`;
-            gameState.score += 50;
-            
-            setTimeout(() => plate.remove(), 300);
-            spawnPlate();
-        };
-        
-        platesContainer.appendChild(plate);
-    }
-    
-    // Spawn initial plates
-    for (let i = 0; i < 10; i++) {
-        spawnPlate();
-    }
-}
-
-function gameOver() {
-    clearCharacters();
-    
-    document.getElementById('game-over-stats').innerHTML = `
-        <h2 style="font-size: 32px; margin: 20px 0; color: #ff0066;">REACHED LEVEL ${gameState.currentLevel}</h2>
-        <p style="font-size: 28px; color: #00ff88;">FINAL SCORE: ${gameState.score}</p>
-    `;
-    
-    document.getElementById('game-over-screen').classList.remove('hidden');
 }
 
 function victory() {
-    clearCharacters();
+    document.getElementById('game-container').style.display = 'none';
     
     document.getElementById('victory-stats').innerHTML = `
-        <h2 style="font-size: 36px; margin: 20px 0; color: #00ff88;">ALL LEVELS COMPLETE</h2>
-        <p style="font-size: 32px; color: #ff00ff;">FINAL SCORE: ${gameState.score}</p>
-        <p style="font-size: 24px; color: #00ddff;">SYSTEM MASTERED</p>
+        <h2 style="color: #00ff88;">ALL 10 LEVELS COMPLETE!</h2>
+        <p style="font-size: 32px;">FINAL SCORE: ${gameState.score}</p>
     `;
     
     document.getElementById('victory-screen').classList.remove('hidden');
 }
-
-function restartGame() {
-    document.getElementById('game-over-screen').classList.add('hidden');
-    gameState.currentLevel = 1;
-    gameState.score = 0;
-    gameState.combo = 0;
-    document.getElementById('instruction-overlay').classList.remove('hidden');
-}
-
-window.addEventListener('load', () => {
-    console.log('⚡ CYBERPUNK CARNIVAL INITIALIZED - EASY MODE');
-});
 </script>
 </body>
 </html>
