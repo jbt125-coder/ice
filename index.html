@@ -3,260 +3,1498 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Support ICE? Game</title>
+    <title>Carnival Wave Shooter v2</title>
     <style>
+        * { box-sizing: border-box; }
         body, html { 
             margin: 0; padding: 0; width: 100%; height: 100%; 
-            overflow: hidden; background: #2c3e50; font-family: 'Arial Rounded MT Bold', sans-serif;
+            overflow: hidden; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Comic Sans MS', 'Arial Rounded MT Bold', sans-serif;
             touch-action: none;
         }
-        #game-container { position: relative; width: 100vw; height: 100vh; background: #87CEEB; display: none; }
-        
+
         /* Overlays */
         .overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); color: white; display: flex;
-            flex-direction: column; align-items: center; justify-content: center;
-            z-index: 100; text-align: center; padding: 20px; box-sizing: border-box;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white; display: flex; flex-direction: column; 
+            align-items: center; justify-content: flex-start;
+            z-index: 200; text-align: center; padding: 20px;
+            overflow-y: auto;
         }
 
-        /* Targets */
-        #target-agent {
-            position: absolute; width: 260px; height: 320px;
-            background-size: contain; background-repeat: no-repeat;
-            top: 15%; left: 50%; transform: translateX(-50%); z-index: 5;
+        .overlay h1 { font-size: 42px; margin: 20px 0; text-shadow: 4px 4px 0 rgba(0,0,0,0.3); }
+        .overlay h2 { font-size: 28px; margin: 15px 0; }
+        .overlay h3 { font-size: 22px; margin: 10px 0; }
+        .overlay p { font-size: 16px; margin: 10px 0; opacity: 0.9; }
+
+        button {
+            padding: 15px 30px; margin: 10px; border-radius: 25px; border: none;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            font-weight: bold; font-size: 18px; cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+        button:hover { transform: scale(1.05); }
+        button:active { transform: scale(0.95); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-small { padding: 8px 15px; font-size: 14px; margin: 5px; }
+        .btn-large { padding: 20px 40px; font-size: 24px; }
+        .btn-green { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); }
+        .btn-red { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .btn-blue { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+
+        input[type="file"] {
+            margin: 10px; padding: 10px; border-radius: 10px;
+            background: white; font-size: 14px;
         }
 
-        /* Slingshot & Physics */
+        select, input[type="text"] {
+            margin: 10px; padding: 12px; border-radius: 10px;
+            border: 2px solid white; font-size: 16px; width: 80%; max-width: 400px;
+        }
+
+        /* Game Container */
+        #game-container { 
+            position: relative; width: 100vw; height: 100vh; 
+            background: linear-gradient(180deg, #87CEEB 0%, #E0F6FF 100%);
+            display: none; 
+        }
+
+        /* UI Elements */
+        #game-ui {
+            position: absolute; top: 0; left: 0; width: 100%; padding: 15px;
+            display: flex; justify-content: space-between; align-items: flex-start;
+            z-index: 50; pointer-events: none;
+        }
+
+        #left-ui, #right-ui { 
+            background: rgba(255,255,255,0.9); padding: 15px; 
+            border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        #score-display { font-size: 24px; font-weight: bold; color: #667eea; margin: 5px 0; }
+        #combo-display { font-size: 18px; color: #f5576c; margin: 5px 0; }
+        #level-display { font-size: 20px; font-weight: bold; color: #764ba2; margin: 5px 0; }
+        #timer-display { font-size: 22px; font-weight: bold; color: #f5576c; margin: 5px 0; }
+
+        /* Projectile Selector */
+        #projectile-selector {
+            position: absolute; bottom: 180px; left: 50%; transform: translateX(-50%);
+            background: rgba(255,255,255,0.95); padding: 10px 20px;
+            border-radius: 20px; display: flex; gap: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3); z-index: 60;
+        }
+
+        .projectile-btn {
+            font-size: 40px; padding: 10px; background: none; border: 3px solid transparent;
+            border-radius: 50%; cursor: pointer; transition: all 0.2s; margin: 0;
+            box-shadow: none; width: 60px; height: 60px; display: flex;
+            align-items: center; justify-content: center;
+        }
+
+        .projectile-btn.active { 
+            border-color: #667eea; background: rgba(102, 126, 234, 0.2);
+            transform: scale(1.15);
+        }
+
+        .projectile-btn.suggested {
+            border-color: #f5576c; animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Target Characters */
+        .character {
+            position: absolute; 
+            width: 150px; height: 150px;
+            border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            z-index: 10; transition: all 0.3s;
+        }
+
+        .character.boss {
+            width: 250px; height: 250px;
+        }
+
+        .character-img {
+            width: 100%; height: 100%; object-fit: cover;
+            border-radius: 20px; position: absolute; top: 0; left: 0;
+        }
+
+        .character-reaction {
+            width: 100%; height: 100%; object-fit: cover;
+            border-radius: 20px; position: absolute; top: 0; left: 0;
+            opacity: 0; transition: opacity 0.3s;
+        }
+
+        .character.reacting .character-reaction {
+            opacity: 1;
+        }
+
+        .character-emoji {
+            font-size: 120px; text-align: center; 
+            line-height: 150px; position: absolute;
+            width: 100%; height: 100%;
+        }
+
+        .character.boss .character-emoji {
+            font-size: 180px; line-height: 250px;
+        }
+
+        .character-need {
+            position: absolute; top: -50px; left: 50%; transform: translateX(-50%);
+            background: white; padding: 8px 15px; border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2); font-size: 24px;
+            white-space: nowrap; z-index: 11;
+        }
+
+        .character-progress {
+            position: absolute; bottom: -30px; left: 10%; width: 80%;
+            height: 15px; background: rgba(255,255,255,0.5);
+            border-radius: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .character-progress-fill {
+            height: 100%; background: linear-gradient(90deg, #84fab0 0%, #8fd3f4 100%);
+            transition: width 0.3s; border-radius: 10px;
+        }
+
+        /* Zone Markers (on character) */
+        .zone-marker {
+            position: absolute; width: 40px; height: 40px;
+            border: 4px solid; border-radius: 50%;
+            transform: translate(-50%, -50%); pointer-events: none;
+            z-index: 12; box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .zone-marker.upper { border-color: #4CAF50; background: rgba(76, 175, 80, 0.2); }
+        .zone-marker.middle { border-color: #2196F3; background: rgba(33, 150, 243, 0.2); }
+        .zone-marker.lower { border-color: #f44336; background: rgba(244, 67, 54, 0.2); }
+
+        /* Slingshot */
+        #slingshot-base {
+            position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
+            width: 80px; height: 100px; z-index: 40;
+        }
+
         #slingshot-node {
             position: absolute; bottom: 80px; left: 50%;
-            width: 20px; height: 20px; background: #fff; border-radius: 50%;
-            transform: translateX(-50%); z-index: 10;
+            width: 25px; height: 25px; background: #8B4513; border-radius: 50%;
+            transform: translateX(-50%); z-index: 41; box-shadow: 0 3px 10px rgba(0,0,0,0.4);
         }
-        .band {
-            position: absolute; height: 6px; background: #4d2600;
-            transform-origin: left center; z-index: 9; border-radius: 3px;
-        }
-        .projectile { position: absolute; font-size: 50px; z-index: 15; transform: translate(-50%, -50%); }
-        .ghost { opacity: 0.5; pointer-events: none; position: absolute; font-size: 50px; z-index: 14; transform: translate(-50%, -50%); }
 
-        /* UI */
-        #score-board {
-            position: absolute; top: 50px; width: 100%; text-align: center;
-            font-size: 35px; color: white; text-shadow: 3px 3px 0 #000; z-index: 50;
+        .band {
+            position: absolute; height: 8px; 
+            background: linear-gradient(90deg, #8B4513, #A0522D);
+            transform-origin: left center; z-index: 39; border-radius: 4px;
+            display: none; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
-        button {
-            padding: 15px; margin: 5px; border-radius: 12px; border: none;
-            background: #f1c40f; font-weight: bold; width: 80%; font-size: 16px;
+
+        /* Projectiles */
+        .projectile { 
+            position: absolute; font-size: 50px; z-index: 45; 
+            transform: translate(-50%, -50%); 
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));
         }
+
+        .ghost { 
+            opacity: 0.6; pointer-events: none; position: absolute; 
+            font-size: 50px; z-index: 44; transform: translate(-50%, -50%); 
+        }
+
+        .trajectory-dot {
+            position: absolute; width: 6px; height: 6px; 
+            background: rgba(255,255,255,0.6); border-radius: 50%;
+            z-index: 38; pointer-events: none;
+        }
+
+        /* Floating Text */
+        .floating-text {
+            position: absolute; font-size: 32px; font-weight: bold;
+            z-index: 100; pointer-events: none; animation: float-up 1.5s ease-out;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        @keyframes float-up {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-100px); }
+        }
+
+        /* Image Grid */
+        .image-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px; max-width: 1000px; margin: 20px auto; max-height: 60vh;
+            overflow-y: auto; padding: 20px; width: 100%;
+        }
+
+        .image-slot {
+            border: 3px dashed rgba(255,255,255,0.5); border-radius: 15px;
+            padding: 15px; text-align: center; background: rgba(255,255,255,0.2);
+            transition: all 0.3s;
+        }
+
+        .image-slot.filled {
+            border: 3px solid white; background: rgba(255,255,255,0.3);
+        }
+
+        .image-preview {
+            width: 100%; height: 100px; object-fit: cover;
+            border-radius: 10px; margin: 5px 0;
+        }
+
+        .slot-label {
+            font-size: 16px; font-weight: bold; margin: 5px 0;
+        }
+
+        /* Zone Editor */
+        #zone-editor-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 300;
+            display: none; flex-direction: column; align-items: center;
+            justify-content: center; padding: 20px;
+        }
+
+        #zone-editor-canvas-container {
+            position: relative; max-width: 90vw; max-height: 70vh;
+            background: white; border-radius: 15px; padding: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        #zone-editor-canvas {
+            max-width: 100%; max-height: 100%; display: block;
+            cursor: crosshair; border-radius: 10px;
+        }
+
+        #zone-editor-instructions {
+            background: rgba(255,255,255,0.95); padding: 20px;
+            border-radius: 15px; margin-bottom: 20px; max-width: 600px;
+        }
+
+        .zone-dot {
+            position: absolute; width: 50px; height: 50px;
+            border: 5px solid; border-radius: 50%;
+            transform: translate(-50%, -50%); pointer-events: none;
+            animation: zone-pulse 1.5s infinite;
+        }
+
+        .zone-dot.upper { border-color: #4CAF50; background: rgba(76, 175, 80, 0.3); }
+        .zone-dot.middle { border-color: #2196F3; background: rgba(33, 150, 243, 0.3); }
+        .zone-dot.lower { border-color: #f44336; background: rgba(244, 67, 54, 0.3); }
+
+        @keyframes zone-pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.15); }
+        }
+
+        /* Voice Recording Panel */
+        .voice-panel {
+            background: rgba(255,255,255,0.2); padding: 15px;
+            border-radius: 15px; margin: 10px; max-width: 600px; width: 100%;
+        }
+
+        .voice-row {
+            display: flex; align-items: center; justify-content: space-between;
+            margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.3);
+            border-radius: 10px; flex-wrap: wrap;
+        }
+
+        .recording-indicator {
+            display: inline-block; width: 12px; height: 12px;
+            background: red; border-radius: 50%; margin-left: 10px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Hidden Elements */
         #yt-player { position: absolute; width: 1px; height: 1px; opacity: 0; }
+        .hidden { display: none !important; }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.5); border-radius: 10px; }
     </style>
 </head>
 <body>
 
 <div id="yt-player"></div>
 
-<div id="title-screen" class="overlay">
-    <h1>HOW DO YOU SUPPORT ICE?</h1>
-    <p>This app requires access to your:<br>Camera Roll, Microphone, and Audio.</p>
-    <button onclick="requestPermissions()">ALLOW ACCESS & PROCEED</button>
+<!-- WELCOME SCREEN -->
+<div id="welcome-screen" class="overlay">
+    <h1>🎪 CARNIVAL WAVE SHOOTER 🎯</h1>
+    <p>A playful wave-based carnival game!</p>
+    <p style="font-size: 14px; max-width: 400px;">
+        This game will request access to your <b>microphone</b> for custom voice recordings
+        and <b>photo uploads</b> for custom characters. All data stays on your device.
+    </p>
+    <button class="btn-large btn-green" onclick="showSetup()">START SETUP</button>
 </div>
 
-<div id="setup-screen" class="overlay" style="display:none;">
-    <h3>1. CHOOSE TARGET PHOTO</h3>
-    <input type="file" id="image-input" accept="image/*" style="margin-bottom:15px;">
+<!-- SETUP SCREEN -->
+<div id="setup-screen" class="overlay hidden">
+    <h2>📸 UPLOAD YOUR CHARACTERS</h2>
+    <p>Upload 2 images per character: Neutral + Reaction</p>
     
-    <h3>2. CHOOSE SYSTEM VOICE</h3>
-    <button onclick="initVoices()">REFRESH VOICE LIST</button>
-    <select id="voice-select" style="width:80%; padding:10px; margin:10px;"></select>
-    
-    <h3>3. RECORD CUSTOM SOUNDS</h3>
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
-        <button onclick="record(0)">🎤 Ew Gross</button>
-        <button onclick="record(1)">🎤 I <3 Shit</button>
-        <button onclick="record(2)">🎤 My Balls!</button>
-        <button onclick="record(3)">🎤 Ouch</button>
-        <button onclick="record(4)">🎤 Thanks</button>
-        <button onclick="record(5)">🎤 Is this Piss?</button>
+    <div class="image-grid" id="image-grid">
+        <!-- Generated dynamically -->
     </div>
     
-    <button style="background:#2ecc71; font-size:22px; margin-top:20px;" onclick="startGame()">START GAME</button>
+    <button class="btn-large btn-green" onclick="showVoiceSetup()" id="continue-voice-btn" disabled>
+        CONTINUE TO VOICE SETUP →
+    </button>
 </div>
 
+<!-- ZONE EDITOR MODAL -->
+<div id="zone-editor-modal">
+    <div id="zone-editor-instructions">
+        <h3 style="margin-top: 0; color: #333;">🎯 Mark Hit Zones</h3>
+        <p style="color: #666; font-size: 14px;">
+            Click to mark 3 zones on your character:<br>
+            <span style="color: #4CAF50;">●</span> <b>Upper Zone</b> (Head/Mouth) - for treats<br>
+            <span style="color: #2196F3;">●</span> <b>Middle Zone</b> (Hands/Arms) - for gifts<br>
+            <span style="color: #f44336;">●</span> <b>Lower Zone</b> (Body/Legs) - for impacts
+        </p>
+        <div id="zone-status" style="color: #333; font-weight: bold; font-size: 16px; margin: 10px 0;">
+            Click to mark: <span id="current-zone-name" style="color: #4CAF50;">UPPER ZONE</span>
+        </div>
+    </div>
+    
+    <div id="zone-editor-canvas-container">
+        <img id="zone-editor-canvas" src="" alt="Zone Editor">
+        <!-- Zone dots will be added dynamically -->
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <button class="btn-small btn-red" onclick="resetZones()">↺ Reset Zones</button>
+        <button class="btn-large btn-green" onclick="saveZones()" id="save-zones-btn" disabled>
+            ✓ SAVE ZONES
+        </button>
+    </div>
+</div>
+
+<!-- VOICE SETUP SCREEN -->
+<div id="voice-setup-screen" class="overlay hidden">
+    <h2>🎤 RECORD CHARACTER VOICES</h2>
+    <p>Record unique responses for each character</p>
+    
+    <div style="max-height: 70vh; overflow-y: auto; width: 100%; max-width: 700px;">
+        <div id="voice-panels">
+            <!-- Generated dynamically per character -->
+        </div>
+    </div>
+    
+    <button class="btn-large btn-green" onclick="showMusicSetup()">
+        CONTINUE TO MUSIC SETUP →
+    </button>
+</div>
+
+<!-- MUSIC SETUP SCREEN -->
+<div id="music-setup-screen" class="overlay hidden">
+    <h2>🎵 BACKGROUND MUSIC</h2>
+    <p>Choose background music for your game</p>
+    
+    <h3>YouTube Video ID:</h3>
+    <input type="text" id="youtube-id" value="rog8ou-ZepE" placeholder="Enter YouTube video ID">
+    <p style="font-size: 12px;">Default: Upbeat carnival music</p>
+    
+    <div style="margin: 20px 0;">
+        <button class="btn-small btn-blue" onclick="testMusic()">▶️ TEST MUSIC</button>
+        <button class="btn-small btn-red" onclick="stopMusic()">⏹️ STOP</button>
+    </div>
+    
+    <button class="btn-large btn-green" onclick="startGame()">
+        🎮 START GAME!
+    </button>
+</div>
+
+<!-- GAME CONTAINER -->
 <div id="game-container">
-    <div id="score-board">SCORE: 0</div>
-    <div id="target-agent"></div>
+    <div id="game-ui">
+        <div id="left-ui">
+            <div id="score-display">SCORE: 0</div>
+            <div id="combo-display">COMBO: 0x</div>
+        </div>
+        <div id="right-ui">
+            <div id="level-display">LEVEL: 1</div>
+            <div id="timer-display">TIME: 30</div>
+        </div>
+    </div>
+
+    <div id="projectile-selector">
+        <button class="projectile-btn" data-type="poop" onclick="selectProjectile('poop')">💩</button>
+        <button class="projectile-btn" data-type="baseball" onclick="selectProjectile('baseball')">⚾</button>
+        <button class="projectile-btn active" data-type="candy" onclick="selectProjectile('candy')">🍬</button>
+        <button class="projectile-btn" data-type="toy" onclick="selectProjectile('toy')">🧸</button>
+        <button class="projectile-btn" data-type="gift" onclick="selectProjectile('gift')">🎁</button>
+        <button class="projectile-btn" data-type="ball" onclick="selectProjectile('ball')">⚽</button>
+        <button class="projectile-btn" data-type="balloon" onclick="selectProjectile('balloon')">🎈</button>
+    </div>
+
+    <div id="slingshot-base">
+        <svg width="80" height="100" viewBox="0 0 80 100">
+            <path d="M 20 100 L 20 20 Q 20 10, 30 10 L 50 10 Q 60 10, 60 20 L 60 100" 
+                  fill="#8B4513" stroke="#654321" stroke-width="2"/>
+            <ellipse cx="40" cy="10" rx="12" ry="8" fill="#A0522D"/>
+        </svg>
+    </div>
     <div id="slingshot-node"></div>
     <div id="band-l" class="band"></div>
     <div id="band-r" class="band"></div>
 </div>
 
+<!-- LEVEL COMPLETE SCREEN -->
+<div id="level-complete-screen" class="overlay hidden">
+    <h1>🎉 LEVEL COMPLETE! 🎉</h1>
+    <div id="level-stats"></div>
+    <button class="btn-large btn-green" onclick="nextLevel()">NEXT LEVEL →</button>
+</div>
+
+<!-- GAME OVER SCREEN -->
+<div id="game-over-screen" class="overlay hidden">
+    <h1>⏰ TIME'S UP!</h1>
+    <div id="game-over-stats"></div>
+    <button class="btn-large btn-green" onclick="restartGame()">PLAY AGAIN</button>
+    <button class="btn-large btn-blue" onclick="location.reload()">MAIN MENU</button>
+</div>
+
+<!-- VICTORY SCREEN -->
+<div id="victory-screen" class="overlay hidden">
+    <h1>🏆 YOU WIN! 🏆</h1>
+    <div id="victory-stats"></div>
+    <button class="btn-large btn-green" onclick="location.reload()">PLAY AGAIN</button>
+</div>
+
 <script>
-    // YouTube API Setup
-    var tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    var firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-    var player;
-    function onYouTubeIframeAPIReady() {
-        player = new YT.Player('yt-player', {
-            height: '1', width: '1',
-            videoId: 'rog8ou-ZepE',
-            playerVars: { 'autoplay': 1, 'loop': 1, 'playlist': 'rog8ou-ZepE' },
-            events: { 'onReady': (e) => e.target.mute() } // Start muted for iOS autoplay rules
-        });
-    }
+// =========================
+// GAME STATE
+// =========================
+const gameState = {
+    characters: [], // {neutralImg, reactionImg, emoji, zones: {upper, middle, lower}, voices}
+    currentLevel: 1,
+    score: 0,
+    combo: 0,
+    timeLeft: 30,
+    activeCharacters: [],
+    selectedProjectile: 'candy',
+    projectileEmojis: {
+        poop: '💩', baseball: '⚾', candy: '🍬', 
+        toy: '🧸', gift: '🎁', ball: '⚽', balloon: '🎈'
+    },
+    zoneNeeds: {
+        upper: ['candy', 'gift', 'balloon'],
+        middle: ['toy', 'gift', 'ball'],
+        lower: ['poop', 'baseball']
+    },
+    musicId: 'rog8ou-ZepE',
+    player: null,
+    timerInterval: null,
+    trajectoryDots: [],
+    
+    // Zone editor state
+    currentEditingChar: null,
+    zoneEditorImage: null,
+    markedZones: {},
+    currentZoneToMark: 'upper'
+};
 
-    let score = 0;
-    let ammo = 'poop';
-    let voices = [];
-    let customSounds = [null, null, null, null, null, null];
-    const defaults = ["Ew gross", "I love that shit", "Oh my balls", "Ouch", "Thank you", "Is this piss?"];
+// Preset emoji characters
+const presetCharacters = [
+    {emoji: '😊', name: 'Happy'},
+    {emoji: '😎', name: 'Cool'},
+    {emoji: '🤠', name: 'Cowboy'},
+    {emoji: '🤖', name: 'Robot'},
+    {emoji: '👽', name: 'Alien'},
+    {emoji: '🐶', name: 'Dog'},
+    {emoji: '🐱', name: 'Cat'},
+    {emoji: '🦁', name: 'Lion'},
+    {emoji: '🐼', name: 'Panda'},
+    {emoji: '🐸', name: 'Frog'}
+];
 
-    function requestPermissions() {
-        if(confirm("Allow app to access Camera Roll and Microphone?")) {
-            document.getElementById('title-screen').style.display = 'none';
-            document.getElementById('setup-screen').style.display = 'flex';
-            if (player) player.unMute();
+// =========================
+// YOUTUBE API
+// =========================
+var tag = document.createElement('script');
+tag.src = "https://www.youtube.com/iframe_api";
+document.head.appendChild(tag);
+
+function onYouTubeIframeAPIReady() {
+    gameState.player = new YT.Player('yt-player', {
+        height: '1', width: '1',
+        videoId: gameState.musicId,
+        playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': gameState.musicId },
+        events: { 
+            'onReady': (e) => e.target.setVolume(30)
         }
-    }
+    });
+}
 
-    function initVoices() {
-        voices = window.speechSynthesis.getVoices();
-        const sel = document.getElementById('voice-select');
-        sel.innerHTML = voices.map((v, i) => `<option value="${i}">${v.name}</option>`).join('');
+function testMusic() {
+    const id = document.getElementById('youtube-id').value.trim();
+    if (gameState.player && id) {
+        gameState.player.loadVideoById(id);
+        gameState.player.playVideo();
+        gameState.musicId = id;
     }
+}
 
-    async function record(i) {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const rec = new MediaRecorder(stream);
-        const chunks = [];
-        rec.ondataavailable = e => chunks.push(e.data);
-        rec.onstop = () => customSounds[i] = URL.createObjectURL(new Blob(chunks));
-        rec.start();
-        setTimeout(() => { rec.stop(); alert("RECORDED!"); }, 1500);
+function stopMusic() {
+    if (gameState.player) gameState.player.pauseVideo();
+}
+
+// =========================
+// SETUP FLOW
+// =========================
+function showSetup() {
+    document.getElementById('welcome-screen').classList.add('hidden');
+    document.getElementById('setup-screen').classList.remove('hidden');
+    generateImageGrid();
+}
+
+function generateImageGrid() {
+    const grid = document.getElementById('image-grid');
+    grid.innerHTML = '';
+    
+    for (let i = 0; i < 10; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'image-slot';
+        slot.innerHTML = `
+            <div class="slot-label">${i === 9 ? '🔥 BOSS' : 'Level ' + (i + 1)}</div>
+            <div style="font-size: 60px; height: 100px; display: flex; align-items: center; justify-content: center;">
+                ${presetCharacters[i].emoji}
+            </div>
+            <button class="btn-small" onclick="uploadCharacterImages(${i})">📸 Upload Images</button>
+            <button class="btn-small btn-green" onclick="usePreset(${i})">✓ Use Preset</button>
+        `;
+        grid.appendChild(slot);
     }
+}
 
-    function playSfx(i) {
-        if (customSounds[i]) { new Audio(customSounds[i]).play(); }
-        else {
-            const msg = new SpeechSynthesisUtterance(defaults[i]);
-            msg.voice = voices[document.getElementById('voice-select').value];
-            window.speechSynthesis.speak(msg);
-        }
-    }
-
-    // Image Upload
-    document.getElementById('image-input').onchange = function(e) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            document.getElementById('target-agent').style.backgroundImage = `url(${event.target.result})`;
-        };
-        reader.readAsDataURL(e.target.files[0]);
+function usePreset(index) {
+    const preset = presetCharacters[index];
+    gameState.characters[index] = {
+        neutralImg: null,
+        reactionImg: null,
+        emoji: preset.emoji,
+        name: preset.name,
+        level: index + 1,
+        isBoss: index === 9,
+        zones: autoDetectZones(), // Auto for emoji
+        voices: { hit: null }
     };
+    updateImageSlot(index);
+    checkSetupComplete();
+}
 
-    function startGame() {
-        document.getElementById('setup-screen').style.display = 'none';
-        document.getElementById('game-container').style.display = 'block';
-        if (player) player.playVideo();
-        runAgent();
-    }
+function autoDetectZones() {
+    // Default zones for emoji/preset (percentages)
+    return {
+        upper: { x: 50, y: 30 },  // Top third
+        middle: { x: 50, y: 50 }, // Middle
+        lower: { x: 50, y: 70 }   // Bottom third
+    };
+}
 
-    let agentX = 50, agentDir = 1;
-    function runAgent() {
-        setInterval(() => {
-            agentX += 1.5 * agentDir;
-            if (agentX > 80 || agentX < 20) agentDir *= -1;
-            document.getElementById('target-agent').style.left = agentX + '%';
-        }, 20);
-    }
-
-    // SNAPPY SLINGSHOT LOGIC
-    let isDragging = false;
-    let basePos = { x: window.innerWidth/2, y: window.innerHeight - 90 };
-    let ghost = null;
-
-    window.addEventListener('touchstart', e => {
-        const t = e.touches[0];
-        if (t.clientY > window.innerHeight - 200) {
-            isDragging = true;
-            ghost = document.createElement('div');
-            ghost.className = 'ghost';
-            ghost.innerHTML = ammo === 'poop' ? '💩' : '⚾';
-            document.body.appendChild(ghost);
-        }
-    });
-
-    window.addEventListener('touchmove', e => {
-        if (!isDragging) return;
-        const t = e.touches[0];
-        const dx = t.clientX - basePos.x;
-        const dy = t.clientY - basePos.y;
-        const angle = Math.atan2(dy, dx);
-        const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 150);
-
-        ghost.style.left = (basePos.x + Math.cos(angle)*dist) + 'px';
-        ghost.style.top = (basePos.y + Math.sin(angle)*dist) + 'px';
-
-        updateBands(basePos.x + Math.cos(angle)*dist, basePos.y + Math.sin(angle)*dist);
-    });
-
-    window.addEventListener('touchend', e => {
-        if (!isDragging) return;
-        isDragging = false;
-        const t = e.changedTouches[0];
-        const vx = (basePos.x - t.clientX) * 0.35; // HIGH POWER SENSITIVITY
-        const vy = (basePos.y - t.clientY) * 0.35;
+function uploadCharacterImages(index) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.multiple = true;
+    
+    input.onchange = (e) => {
+        const files = Array.from(e.target.files);
         
-        ghost.remove();
-        clearBands();
-        if (Math.abs(vy) > 5) launch(vx, vy);
-    });
+        if (files.length < 2) {
+            alert('Please select 2 images: Neutral and Reaction');
+            return;
+        }
+        
+        const reader1 = new FileReader();
+        const reader2 = new FileReader();
+        
+        reader1.onload = (event1) => {
+            reader2.onload = (event2) => {
+                gameState.characters[index] = {
+                    neutralImg: event1.target.result,
+                    reactionImg: event2.target.result,
+                    emoji: null,
+                    name: files[0].name.split('.')[0],
+                    level: index + 1,
+                    isBoss: index === 9,
+                    zones: null, // Will be set in zone editor
+                    voices: { hit: null }
+                };
+                
+                updateImageSlot(index);
+                
+                // Open zone editor for this character
+                openZoneEditor(index);
+            };
+            reader2.readAsDataURL(files[1]);
+        };
+        reader1.readAsDataURL(files[0]);
+    };
+    
+    input.click();
+}
 
-    function updateBands(tx, ty) {
-        const bl = document.getElementById('band-l'), br = document.getElementById('band-r');
-        const angle = Math.atan2(ty - basePos.y, tx - basePos.x);
-        const dist = Math.sqrt((tx-basePos.x)**2 + (ty-basePos.y)**2);
-        [bl, br].forEach(b => {
-            b.style.display = 'block';
-            b.style.left = basePos.x + 'px'; b.style.top = basePos.y + 'px';
-            b.style.width = dist + 'px'; b.style.transform = `rotate(${angle}rad)`;
+function updateImageSlot(index) {
+    const slots = document.querySelectorAll('.image-slot');
+    const char = gameState.characters[index];
+    
+    if (char) {
+        slots[index].classList.add('filled');
+        
+        if (char.neutralImg) {
+            slots[index].innerHTML = `
+                <div class="slot-label">${char.isBoss ? '🔥 BOSS' : 'Level ' + char.level}</div>
+                <img src="${char.neutralImg}" class="image-preview" alt="Neutral">
+                <img src="${char.reactionImg}" class="image-preview" alt="Reaction">
+                <button class="btn-small btn-blue" onclick="openZoneEditor(${index})">🎯 Edit Zones</button>
+                <button class="btn-small btn-red" onclick="removeCharacter(${index})">✕ Remove</button>
+            `;
+        } else {
+            slots[index].innerHTML = `
+                <div class="slot-label">${char.isBoss ? '🔥 BOSS' : 'Level ' + char.level}</div>
+                <div style="font-size: 60px; height: 100px; display: flex; align-items: center; justify-content: center;">
+                    ${char.emoji}
+                </div>
+                <button class="btn-small btn-red" onclick="removeCharacter(${index})">✕ Remove</button>
+            `;
+        }
+    }
+}
+
+function removeCharacter(index) {
+    gameState.characters[index] = null;
+    generateImageGrid();
+    gameState.characters.forEach((char, i) => {
+        if (char) updateImageSlot(i);
+    });
+    checkSetupComplete();
+}
+
+function checkSetupComplete() {
+    const filled = gameState.characters.filter(c => c !== null && c !== undefined).length;
+    const btn = document.getElementById('continue-voice-btn');
+    
+    // Also check that all custom images have zones marked
+    const allHaveZones = gameState.characters.every(char => {
+        if (!char) return true;
+        if (char.emoji) return true; // Presets auto-have zones
+        return char.zones !== null;
+    });
+    
+    if (filled === 10 && allHaveZones) {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+    } else {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+    }
+}
+
+// =========================
+// ZONE EDITOR
+// =========================
+function openZoneEditor(charIndex) {
+    const char = gameState.characters[charIndex];
+    if (!char || !char.neutralImg) return;
+    
+    gameState.currentEditingChar = charIndex;
+    gameState.markedZones = char.zones || {};
+    gameState.currentZoneToMark = 'upper';
+    
+    const modal = document.getElementById('zone-editor-modal');
+    const canvas = document.getElementById('zone-editor-canvas');
+    
+    canvas.src = char.neutralImg;
+    modal.style.display = 'flex';
+    
+    updateZoneStatus();
+    renderZoneDots();
+}
+
+function updateZoneStatus() {
+    const zones = ['upper', 'middle', 'lower'];
+    const zoneNames = {upper: 'UPPER ZONE', middle: 'MIDDLE ZONE', lower: 'LOWER ZONE'};
+    const zoneColors = {upper: '#4CAF50', middle: '#2196F3', lower: '#f44336'};
+    
+    const markedCount = Object.keys(gameState.markedZones).length;
+    
+    if (markedCount < 3) {
+        gameState.currentZoneToMark = zones[markedCount];
+        document.getElementById('current-zone-name').innerText = zoneNames[gameState.currentZoneToMark];
+        document.getElementById('current-zone-name').style.color = zoneColors[gameState.currentZoneToMark];
+        document.getElementById('save-zones-btn').disabled = true;
+    } else {
+        document.getElementById('zone-status').innerHTML = '<span style="color: #4CAF50;">✓ All zones marked!</span>';
+        document.getElementById('save-zones-btn').disabled = false;
+    }
+}
+
+function renderZoneDots() {
+    // Clear existing dots
+    document.querySelectorAll('.zone-dot').forEach(dot => dot.remove());
+    
+    const canvas = document.getElementById('zone-editor-canvas');
+    const container = document.getElementById('zone-editor-canvas-container');
+    const rect = canvas.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    
+    Object.keys(gameState.markedZones).forEach(zone => {
+        const pos = gameState.markedZones[zone];
+        const dot = document.createElement('div');
+        dot.className = `zone-dot ${zone}`;
+        
+        // Convert percentage to pixel position relative to canvas
+        const x = containerRect.left - container.parentElement.scrollLeft + (rect.width * pos.x / 100) + 10;
+        const y = containerRect.top - container.parentElement.scrollTop + (rect.height * pos.y / 100) + 10;
+        
+        dot.style.left = x + 'px';
+        dot.style.top = y + 'px';
+        dot.style.position = 'fixed';
+        
+        document.body.appendChild(dot);
+    });
+}
+
+// Click handler for zone marking
+document.addEventListener('DOMContentLoaded', () => {
+    const canvas = document.getElementById('zone-editor-canvas');
+    
+    canvas.addEventListener('click', (e) => {
+        if (Object.keys(gameState.markedZones).length >= 3) return;
+        
+        const rect = canvas.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        
+        gameState.markedZones[gameState.currentZoneToMark] = { x, y };
+        
+        updateZoneStatus();
+        renderZoneDots();
+    });
+});
+
+function resetZones() {
+    gameState.markedZones = {};
+    gameState.currentZoneToMark = 'upper';
+    updateZoneStatus();
+    renderZoneDots();
+}
+
+function saveZones() {
+    if (gameState.currentEditingChar !== null) {
+        gameState.characters[gameState.currentEditingChar].zones = {...gameState.markedZones};
+        document.getElementById('zone-editor-modal').style.display = 'none';
+        
+        // Clear dots
+        document.querySelectorAll('.zone-dot').forEach(dot => dot.remove());
+        
+        checkSetupComplete();
+    }
+}
+
+// =========================
+// VOICE SETUP
+// =========================
+function showVoiceSetup() {
+    document.getElementById('setup-screen').classList.add('hidden');
+    document.getElementById('voice-setup-screen').classList.remove('hidden');
+    generateVoicePanels();
+}
+
+function generateVoicePanels() {
+    const container = document.getElementById('voice-panels');
+    container.innerHTML = '';
+    
+    gameState.characters.forEach((char, index) => {
+        if (!char) return;
+        
+        const panel = document.createElement('div');
+        panel.className = 'voice-panel';
+        
+        const displayName = char.name || `Character ${index + 1}`;
+        const displayImage = char.neutralImg 
+            ? `<img src="${char.neutralImg}" style="width: 80px; height: 80px; border-radius: 10px; object-fit: cover;">`
+            : `<div style="font-size: 60px;">${char.emoji}</div>`;
+        
+        panel.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                ${displayImage}
+                <div>
+                    <div style="font-size: 20px; font-weight: bold;">${displayName}</div>
+                    <div style="font-size: 14px; opacity: 0.8;">${char.isBoss ? '🔥 BOSS' : 'Level ' + char.level}</div>
+                </div>
+            </div>
+            
+            <div class="voice-row">
+                <span>Hit Reaction Voice</span>
+                <div>
+                    <button class="btn-small" onclick="recordVoice(${index})" id="record-${index}">🎤 Record</button>
+                    <button class="btn-small btn-blue" onclick="playVoice(${index})" id="play-${index}" style="display:none;">▶️ Play</button>
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(panel);
+    });
+}
+
+async function recordVoice(charIndex) {
+    const btn = document.getElementById(`record-${charIndex}`);
+    const playBtn = document.getElementById(`play-${charIndex}`);
+    
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const recorder = new MediaRecorder(stream);
+        const chunks = [];
+        
+        btn.innerHTML = '⏺️ Recording<span class="recording-indicator"></span>';
+        btn.disabled = true;
+        
+        recorder.ondataavailable = e => chunks.push(e.data);
+        recorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'audio/webm' });
+            gameState.characters[charIndex].voices.hit = URL.createObjectURL(blob);
+            
+            btn.innerHTML = '✓ Recorded';
+            btn.disabled = false;
+            playBtn.style.display = 'inline-block';
+            
+            stream.getTracks().forEach(track => track.stop());
+        };
+        
+        recorder.start();
+        setTimeout(() => recorder.stop(), 2000);
+        
+    } catch (err) {
+        alert('Microphone access denied. Using text-to-speech instead.');
+        btn.innerHTML = '🎤 Record';
+    }
+}
+
+function playVoice(charIndex) {
+    const url = gameState.characters[charIndex].voices.hit;
+    if (url) {
+        const audio = new Audio(url);
+        audio.play();
+    }
+}
+
+function showMusicSetup() {
+    document.getElementById('voice-setup-screen').classList.add('hidden');
+    document.getElementById('music-setup-screen').classList.remove('hidden');
+}
+
+// =========================
+// GAME START
+// =========================
+function startGame() {
+    document.getElementById('music-setup-screen').classList.add('hidden');
+    document.getElementById('game-container').style.display = 'block';
+    
+    if (gameState.player) {
+        gameState.player.loadVideoById(gameState.musicId);
+        gameState.player.playVideo();
+    }
+    
+    gameState.currentLevel = 1;
+    gameState.score = 0;
+    gameState.combo = 0;
+    
+    startLevel();
+}
+
+function startLevel() {
+    updateUI();
+    clearCharacters();
+    
+    const levelTime = gameState.currentLevel <= 3 ? 30 : 
+                      gameState.currentLevel <= 6 ? 45 : 60;
+    gameState.timeLeft = levelTime;
+    
+    spawnWave();
+    startTimer();
+}
+
+function startTimer() {
+    if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+    
+    gameState.timerInterval = setInterval(() => {
+        gameState.timeLeft--;
+        document.getElementById('timer-display').innerText = `TIME: ${gameState.timeLeft}`;
+        
+        if (gameState.timeLeft <= 0) {
+            clearInterval(gameState.timerInterval);
+            gameOver();
+        }
+    }, 1000);
+}
+
+function spawnWave() {
+    const char = gameState.characters[gameState.currentLevel - 1];
+    if (!char) return;
+    
+    const count = gameState.currentLevel <= 3 ? 1 : 
+                  gameState.currentLevel <= 6 ? 2 : 3;
+    
+    for (let i = 0; i < count; i++) {
+        setTimeout(() => spawnCharacter(char, i), i * 1000);
+    }
+}
+
+function spawnCharacter(charData, index) {
+    const char = document.createElement('div');
+    char.className = 'character' + (charData.isBoss ? ' boss' : '');
+    char.id = 'char-' + Date.now() + '-' + index;
+    
+    // Add images or emoji
+    if (charData.neutralImg) {
+        char.innerHTML = `
+            <img src="${charData.neutralImg}" class="character-img">
+            <img src="${charData.reactionImg}" class="character-reaction">
+        `;
+    } else {
+        char.innerHTML = `<div class="character-emoji">${charData.emoji}</div>`;
+    }
+    
+    // Position
+    const startX = 20 + Math.random() * 60;
+    char.style.left = startX + '%';
+    char.style.top = '15%';
+    
+    // Needs calculation
+    const itemsNeeded = gameState.currentLevel <= 3 ? 2 :
+                        gameState.currentLevel <= 6 ? 4 :
+                        gameState.currentLevel <= 9 ? 6 : 10;
+    
+    const needs = {};
+    const zones = ['upper', 'middle', 'lower'];
+    zones.forEach(zone => {
+        const items = gameState.zoneNeeds[zone];
+        needs[zone] = items[Math.floor(Math.random() * items.length)];
+    });
+    
+    // Needs display
+    const needDisplay = document.createElement('div');
+    needDisplay.className = 'character-need';
+    needDisplay.innerHTML = Object.values(needs).map(item => gameState.projectileEmojis[item]).join(' ');
+    char.appendChild(needDisplay);
+    
+    // Progress bar
+    const progress = document.createElement('div');
+    progress.className = 'character-progress';
+    progress.innerHTML = '<div class="character-progress-fill" style="width: 0%"></div>';
+    char.appendChild(progress);
+    
+    // Zone markers (visual guides)
+    if (charData.zones) {
+        zones.forEach(zone => {
+            const marker = document.createElement('div');
+            marker.className = `zone-marker ${zone}`;
+            marker.style.left = charData.zones[zone].x + '%';
+            marker.style.top = charData.zones[zone].y + '%';
+            char.appendChild(marker);
         });
     }
+    
+    document.getElementById('game-container').appendChild(char);
+    
+    // Store character state
+    const charState = {
+        element: char,
+        data: charData,
+        needs: needs,
+        hits: 0,
+        totalNeeded: itemsNeeded,
+        startX: startX,
+        currentX: startX,
+        direction: Math.random() > 0.5 ? 1 : -1,
+        movePattern: gameState.currentLevel <= 3 ? 'horizontal' :
+                     gameState.currentLevel <= 6 ? 'wave' : 'complex'
+    };
+    
+    gameState.activeCharacters.push(charState);
+    animateCharacter(charState);
+}
 
-    function clearBands() {
-        document.getElementById('band-l').style.display = 'none';
-        document.getElementById('band-r').style.display = 'none';
-    }
-
-    function launch(vx, vy) {
-        const p = document.createElement('div');
-        p.className = 'projectile';
-        p.innerHTML = ammo === 'poop' ? '💩' : '⚾';
-        document.body.appendChild(p);
-
-        let px = basePos.x, py = basePos.y, s = 1.0, current = ammo;
-        let fly = setInterval(() => {
-            px += vx; py += vy; s -= 0.03;
-            p.style.left = px + 'px'; p.style.top = py + 'px';
-            p.style.transform = `translate(-50%, -50%) scale(${s})`;
-            if (s <= 0.2) { 
-                check(px, py, current); clearInterval(fly); p.remove(); 
+function animateCharacter(charState) {
+    let frame = 0;
+    
+    const animate = () => {
+        if (!document.getElementById(charState.element.id)) return;
+        
+        frame++;
+        
+        if (charState.movePattern === 'horizontal') {
+            charState.currentX += 0.5 * charState.direction;
+            if (charState.currentX > 80 || charState.currentX < 20) {
+                charState.direction *= -1;
             }
-        }, 20);
-        ammo = ammo === 'poop' ? 'ball' : 'poop';
-    }
-
-    function check(x, y, type) {
-        const r = document.getElementById('target-agent').getBoundingClientRect();
-        const mx = r.left + r.width/2;
-        if (type === 'poop' && Math.abs(x - mx) < 60 && Math.abs(y - (r.top + 100)) < 60) {
-            score += 100; playSfx(Math.floor(Math.random()*2));
-        } else if (type === 'ball' && Math.abs(x - mx) < 60 && Math.abs(y - (r.bottom - 60)) < 60) {
-            score += 200; playSfx(2 + Math.floor(Math.random()*2));
+            charState.element.style.left = charState.currentX + '%';
+            
+        } else if (charState.movePattern === 'wave') {
+            charState.currentX += 0.5 * charState.direction;
+            if (charState.currentX > 80 || charState.currentX < 20) {
+                charState.direction *= -1;
+            }
+            const yOffset = Math.sin(frame * 0.05) * 50;
+            charState.element.style.left = charState.currentX + '%';
+            charState.element.style.top = (15 + yOffset) + 'px';
+            
+        } else {
+            const t = frame * 0.03;
+            charState.currentX = 50 + Math.sin(t) * 30;
+            const yOffset = Math.cos(t * 2) * 40;
+            charState.element.style.left = charState.currentX + '%';
+            charState.element.style.top = (15 + yOffset) + 'px';
         }
-        document.getElementById('score-board').innerText = "SCORE: " + score;
+        
+        requestAnimationFrame(animate);
+    };
+    
+    animate();
+}
+
+function clearCharacters() {
+    gameState.activeCharacters.forEach(char => {
+        if (char.element && char.element.parentNode) {
+            char.element.parentNode.removeChild(char.element);
+        }
+    });
+    gameState.activeCharacters = [];
+}
+
+// =========================
+// PROJECTILE SELECTION
+// =========================
+function selectProjectile(type) {
+    gameState.selectedProjectile = type;
+    document.querySelectorAll('.projectile-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`[data-type="${type}"]`).classList.add('active');
+    updateSuggestions();
+}
+
+function updateSuggestions() {
+    document.querySelectorAll('.projectile-btn').forEach(btn => {
+        btn.classList.remove('suggested');
+    });
+    
+    const needed = new Set();
+    gameState.activeCharacters.forEach(char => {
+        Object.values(char.needs).forEach(item => needed.add(item));
+    });
+    
+    needed.forEach(type => {
+        const btn = document.querySelector(`[data-type="${type}"]`);
+        if (btn && !btn.classList.contains('active')) {
+            btn.classList.add('suggested');
+        }
+    });
+}
+
+// =========================
+// SLINGSHOT PHYSICS
+// =========================
+let isDragging = false;
+let basePos = { x: 0, y: 0 };
+let ghost = null;
+
+function initSlingshot() {
+    const node = document.getElementById('slingshot-node');
+    const rect = node.getBoundingClientRect();
+    basePos = { x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
+}
+
+window.addEventListener('resize', initSlingshot);
+setTimeout(initSlingshot, 100);
+
+window.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    if (t.clientY > window.innerHeight - 200) {
+        isDragging = true;
+        initSlingshot();
+        
+        ghost = document.createElement('div');
+        ghost.className = 'ghost';
+        ghost.innerHTML = gameState.projectileEmojis[gameState.selectedProjectile];
+        document.body.appendChild(ghost);
     }
+});
+
+window.addEventListener('touchmove', e => {
+    if (!isDragging) return;
+    e.preventDefault();
+    
+    const t = e.touches[0];
+    const dx = t.clientX - basePos.x;
+    const dy = t.clientY - basePos.y;
+    const angle = Math.atan2(dy, dx);
+    const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 180);
+    
+    const ghostX = basePos.x + Math.cos(angle) * dist;
+    const ghostY = basePos.y + Math.sin(angle) * dist;
+    
+    ghost.style.left = ghostX + 'px';
+    ghost.style.top = ghostY + 'px';
+    
+    updateBands(ghostX, ghostY);
+    showTrajectory(ghostX, ghostY);
+});
+
+window.addEventListener('touchend', e => {
+    if (!isDragging) return;
+    isDragging = false;
+    
+    const t = e.changedTouches[0];
+    const vx = (basePos.x - t.clientX) * 0.4;
+    const vy = (basePos.y - t.clientY) * 0.4;
+    
+    if (ghost) ghost.remove();
+    clearBands();
+    clearTrajectory();
+    
+    if (Math.abs(vy) > 5) {
+        launch(vx, vy);
+    }
+});
+
+// Mouse support for desktop testing
+window.addEventListener('mousedown', e => {
+    if (e.clientY > window.innerHeight - 200) {
+        isDragging = true;
+        initSlingshot();
+        
+        ghost = document.createElement('div');
+        ghost.className = 'ghost';
+        ghost.innerHTML = gameState.projectileEmojis[gameState.selectedProjectile];
+        document.body.appendChild(ghost);
+    }
+});
+
+window.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    
+    const dx = e.clientX - basePos.x;
+    const dy = e.clientY - basePos.y;
+    const angle = Math.atan2(dy, dx);
+    const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 180);
+    
+    const ghostX = basePos.x + Math.cos(angle) * dist;
+    const ghostY = basePos.y + Math.sin(angle) * dist;
+    
+    ghost.style.left = ghostX + 'px';
+    ghost.style.top = ghostY + 'px';
+    
+    updateBands(ghostX, ghostY);
+    showTrajectory(ghostX, ghostY);
+});
+
+window.addEventListener('mouseup', e => {
+    if (!isDragging) return;
+    isDragging = false;
+    
+    const vx = (basePos.x - e.clientX) * 0.4;
+    const vy = (basePos.y - e.clientY) * 0.4;
+    
+    if (ghost) ghost.remove();
+    clearBands();
+    clearTrajectory();
+    
+    if (Math.abs(vy) > 5) {
+        launch(vx, vy);
+    }
+});
+
+function updateBands(tx, ty) {
+    const bl = document.getElementById('band-l');
+    const br = document.getElementById('band-r');
+    const angle = Math.atan2(ty - basePos.y, tx - basePos.x);
+    const dist = Math.sqrt((tx - basePos.x)**2 + (ty - basePos.y)**2);
+    
+    bl.style.display = 'block';
+    br.style.display = 'block';
+    bl.style.left = basePos.x + 'px';
+    bl.style.top = basePos.y + 'px';
+    bl.style.width = dist + 'px';
+    bl.style.transform = `rotate(${angle}rad)`;
+    
+    br.style.left = basePos.x + 'px';
+    br.style.top = basePos.y + 'px';
+    br.style.width = dist + 'px';
+    br.style.transform = `rotate(${angle}rad)`;
+}
+
+function clearBands() {
+    document.getElementById('band-l').style.display = 'none';
+    document.getElementById('band-r').style.display = 'none';
+}
+
+function showTrajectory(startX, startY) {
+    clearTrajectory();
+    
+    const vx = (basePos.x - startX) * 0.4;
+    const vy = (basePos.y - startY) * 0.4;
+    
+    let px = basePos.x, py = basePos.y;
+    
+    for (let i = 0; i < 15; i++) {
+        px += vx * 0.8;
+        py += vy * 0.8;
+        
+        const dot = document.createElement('div');
+        dot.className = 'trajectory-dot';
+        dot.style.left = px + 'px';
+        dot.style.top = py + 'px';
+        document.body.appendChild(dot);
+        gameState.trajectoryDots.push(dot);
+    }
+}
+
+function clearTrajectory() {
+    gameState.trajectoryDots.forEach(dot => dot.remove());
+    gameState.trajectoryDots = [];
+}
+
+function launch(vx, vy) {
+    const p = document.createElement('div');
+    p.className = 'projectile';
+    p.innerHTML = gameState.projectileEmojis[gameState.selectedProjectile];
+    document.body.appendChild(p);
+    
+    let px = basePos.x, py = basePos.y;
+    let scale = 1.2;
+    const projectileType = gameState.selectedProjectile;
+    
+    const fly = setInterval(() => {
+        px += vx;
+        py += vy;
+        scale -= 0.04;
+        
+        p.style.left = px + 'px';
+        p.style.top = py + 'px';
+        p.style.transform = `translate(-50%, -50%) scale(${scale}) rotate(${scale * 360}deg)`;
+        
+        if (scale <= 0.15 || py < 0 || px < 0 || px > window.innerWidth) {
+            clearInterval(fly);
+            checkHit(px, py, projectileType);
+            p.remove();
+        }
+    }, 20);
+    
+    updateSuggestions();
+}
+
+function checkHit(x, y, projectileType) {
+    let hit = false;
+    
+    for (let charState of gameState.activeCharacters) {
+        const rect = charState.element.getBoundingClientRect();
+        
+        if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+            continue;
+        }
+        
+        // Calculate relative position as percentage
+        const relX = ((x - rect.left) / rect.width) * 100;
+        const relY = ((y - rect.top) / rect.height) * 100;
+        
+        // Find closest zone
+        let closestZone = null;
+        let minDist = Infinity;
+        
+        Object.keys(charState.data.zones).forEach(zoneName => {
+            const zone = charState.data.zones[zoneName];
+            const dist = Math.sqrt(
+                Math.pow(relX - zone.x, 2) + 
+                Math.pow(relY - zone.y, 2)
+            );
+            
+            if (dist < minDist) {
+                minDist = dist;
+                closestZone = zoneName;
+            }
+        });
+        
+        // Forgiving hit detection - within 30% of character size
+        const hitRadius = 30;
+        
+        if (minDist <= hitRadius && charState.needs[closestZone] === projectileType) {
+            hit = true;
+            charState.hits++;
+            
+            const progress = (charState.hits / charState.totalNeeded) * 100;
+            const fill = charState.element.querySelector('.character-progress-fill');
+            if (fill) fill.style.width = progress + '%';
+            
+            // Show reaction image
+            showReaction(charState.element);
+            
+            // Play voice
+            playCharacterVoice(charState.data);
+            
+            // Score
+            const basePoints = closestZone === 'upper' ? 50 : 
+                              closestZone === 'middle' ? 100 : 25;
+            gameState.combo++;
+            const totalPoints = basePoints * gameState.combo;
+            gameState.score += totalPoints;
+            
+            showFloatingText(x, y, `+${totalPoints}`, '#4CAF50');
+            
+            // Check if character complete
+            if (charState.hits >= charState.totalNeeded) {
+                charState.element.style.transition = 'all 0.5s';
+                charState.element.style.transform = 'scale(0) rotate(360deg)';
+                charState.element.style.opacity = '0';
+                
+                setTimeout(() => {
+                    charState.element.remove();
+                    gameState.activeCharacters = gameState.activeCharacters.filter(c => c !== charState);
+                    
+                    if (gameState.activeCharacters.length === 0) {
+                        levelComplete();
+                    }
+                }, 500);
+                
+                gameState.score += 500;
+                showFloatingText(rect.left + rect.width/2, rect.top, 'CLEARED! +500', '#FFD700');
+            }
+            
+            updateUI();
+            break;
+            
+        } else if (minDist <= hitRadius) {
+            // Hit character but wrong projectile
+            gameState.combo = 0;
+            showFloatingText(x, y, 'WRONG!', '#f44336');
+            updateUI();
+            hit = true;
+            break;
+        }
+    }
+    
+    if (!hit) {
+        gameState.combo = 0;
+        updateUI();
+    }
+}
+
+function showReaction(charElement) {
+    charElement.classList.add('reacting');
+    setTimeout(() => {
+        charElement.classList.remove('reacting');
+    }, 500);
+}
+
+function playCharacterVoice(charData) {
+    const voiceUrl = charData.voices.hit;
+    
+    if (voiceUrl) {
+        const audio = new Audio(voiceUrl);
+        audio.play();
+    } else {
+        const msg = new SpeechSynthesisUtterance('Nice hit!');
+        window.speechSynthesis.speak(msg);
+    }
+}
+
+function showFloatingText(x, y, text, color) {
+    const ft = document.createElement('div');
+    ft.className = 'floating-text';
+    ft.innerText = text;
+    ft.style.left = x + 'px';
+    ft.style.top = y + 'px';
+    ft.style.color = color;
+    document.body.appendChild(ft);
+    
+    setTimeout(() => ft.remove(), 1500);
+}
+
+function updateUI() {
+    document.getElementById('score-display').innerText = `SCORE: ${gameState.score}`;
+    document.getElementById('combo-display').innerText = `COMBO: ${gameState.combo}x`;
+    document.getElementById('level-display').innerText = `LEVEL: ${gameState.currentLevel}`;
+}
+
+// =========================
+// LEVEL PROGRESSION
+// =========================
+function levelComplete() {
+    clearInterval(gameState.timerInterval);
+    
+    const bonusTime = gameState.timeLeft * 10;
+    gameState.score += bonusTime;
+    
+    document.getElementById('level-stats').innerHTML = `
+        <h2 style="font-size: 36px; margin: 20px 0;">Level ${gameState.currentLevel} Complete!</h2>
+        <p style="font-size: 24px;">Score: ${gameState.score}</p>
+        <p style="font-size: 20px;">Time Bonus: +${bonusTime}</p>
+    `;
+    
+    document.getElementById('level-complete-screen').classList.remove('hidden');
+}
+
+function nextLevel() {
+    document.getElementById('level-complete-screen').classList.add('hidden');
+    
+    gameState.currentLevel++;
+    
+    if (gameState.currentLevel > 10) {
+        victory();
+    } else {
+        startLevel();
+    }
+}
+
+function gameOver() {
+    clearCharacters();
+    
+    document.getElementById('game-over-stats').innerHTML = `
+        <h2 style="font-size: 32px; margin: 20px 0;">You reached Level ${gameState.currentLevel}</h2>
+        <p style="font-size: 28px;">Final Score: ${gameState.score}</p>
+    `;
+    
+    document.getElementById('game-over-screen').classList.remove('hidden');
+}
+
+function victory() {
+    clearCharacters();
+    
+    document.getElementById('victory-stats').innerHTML = `
+        <h2 style="font-size: 36px; margin: 20px 0;">ALL LEVELS COMPLETE!</h2>
+        <p style="font-size: 32px;">Final Score: ${gameState.score}</p>
+        <p style="font-size: 24px;">You're a Carnival Champion!</p>
+    `;
+    
+    document.getElementById('victory-screen').classList.remove('hidden');
+}
+
+function restartGame() {
+    document.getElementById('game-over-screen').classList.add('hidden');
+    gameState.currentLevel = 1;
+    gameState.score = 0;
+    gameState.combo = 0;
+    startLevel();
+}
+
+// Initialize
+window.addEventListener('load', () => {
+    console.log('🎪 Carnival Wave Shooter v2 Ready!');
+});
 </script>
 </body>
 </html>
