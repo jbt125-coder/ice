@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Carnival Game - V10</title>
+    <title>Carnival Game - V11</title>
     <style>
         * { box-sizing: border-box; }
         body, html { 
@@ -146,7 +146,7 @@
 
         .character {
             position: absolute; 
-            width: 200px; height: 200px;
+            width: 250px; height: 250px;
             border-radius: 10px; 
             z-index: 10;
         }
@@ -167,25 +167,9 @@
         }
 
         .character-emoji {
-            font-size: 160px; text-align: center; 
-            line-height: 200px;
+            font-size: 200px; text-align: center; 
+            line-height: 250px;
             filter: drop-shadow(0 0 20px #00ff88);
-        }
-
-        .hit-circle {
-            position: absolute;
-            width: 300px; height: 300px;
-            border: 5px solid #00ff88;
-            border-radius: 50%;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            box-shadow: 0 0 40px rgba(0,255,136,0.6);
-            animation: pulse-circle 2s infinite;
-        }
-
-        @keyframes pulse-circle {
-            0%, 100% { opacity: 0.6; }
-            50% { opacity: 1; }
         }
 
         .projectile { 
@@ -230,12 +214,8 @@
             border-radius: 50%;
             border: 3px solid #666;
             box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-            cursor: pointer;
             transition: all 0.2s;
-        }
-
-        .plate:hover {
-            transform: scale(1.1);
+            z-index: 10;
         }
 
         .plate.broken {
@@ -257,6 +237,14 @@
             max-width: 600px;
         }
 
+        .timer-display {
+            font-size: 48px;
+            font-weight: bold;
+            color: #ff00ff;
+            text-shadow: 0 0 20px #ff00ff;
+            margin: 20px 0;
+        }
+
         .hidden { display: none !important; }
     </style>
 </head>
@@ -264,28 +252,23 @@
 
 <!-- TITLE SCREEN -->
 <div id="title-screen" class="screen">
-    <h1>🎪 CARNIVAL GAME - V10 🎪</h1>
+    <h1>🎪 CARNIVAL GAME - V11 🎪</h1>
     <button class="btn-large" onclick="showImageSetup()">START SETUP</button>
 </div>
 
 <!-- IMAGE SETUP SCREEN -->
 <div id="image-setup-screen" class="screen hidden">
     <h2>STEP 1: UPLOAD IMAGES</h2>
-    <p>Upload Neutral & Reaction images for each level</p>
+    <p>Upload Neutral & Reaction images (or skip and emojis auto-fill)</p>
     
     <div class="slots-grid" id="slots-grid"></div>
     
     <div class="warning-box">
         <p style="color: #ffa500; font-size: 18px; font-weight: bold;">⚠️ MORE FUN WITH YOUR OWN IMAGES!</p>
-        <p style="color: #fff;">Upload photos to personalize your game experience</p>
+        <p style="color: #fff;">Upload photos to personalize. Any skipped levels use emoji presets.</p>
     </div>
     
-    <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
-        <button class="btn-large" onclick="continueWithEmojis()">CONTINUE WITH EMOJIS</button>
-        <button class="btn-large" onclick="continueWithImages()" id="images-ready-btn" style="background: rgba(255,215,0,0.3); border-color: #ffd700;">
-            UPLOADED IMAGES READY - CONTINUE
-        </button>
-    </div>
+    <button class="btn-large" onclick="showAudioSetup()">CONTINUE TO AUDIO SETUP →</button>
 </div>
 
 <!-- AUDIO SETUP SCREEN -->
@@ -295,18 +278,22 @@
     
     <div id="audio-panels"></div>
     
-    <button class="btn-large" onclick="startPlateBonus()">CONTINUE TO BONUS →</button>
+    <button class="btn-large" onclick="startBonusRound()">START GAME! →</button>
 </div>
 
 <!-- PLATE BONUS SCREEN -->
-<div id="plate-bonus-screen" class="screen hidden">
-    <h1>🎯 BONUS: BREAK THE PLATES!</h1>
-    <p style="font-size: 24px; color: #ff00ff;">TAP PLATES TO BREAK THEM</p>
-    <div id="plates-broken" style="font-size: 32px; margin: 20px 0;">0 / 10</div>
+<div id="plate-bonus-screen" class="screen hidden" style="justify-content: flex-start; padding-top: 50px;">
+    <h1>🎯 BONUS ROUND ${currentBonusRound}</h1>
+    <p style="font-size: 20px; color: #ff00ff;">BREAK AS MANY PLATES AS YOU CAN!</p>
     
-    <div id="plates-container" style="position: relative; width: 90%; max-width: 800px; height: 400px; background: rgba(0,0,0,0.5); border-radius: 10px; border: 2px solid #00ff88;"></div>
+    <div class="timer-display" id="bonus-timer">30</div>
+    <div style="font-size: 32px; margin: 10px 0; color: #00ff88;" id="plates-broken-count">PLATES: 0</div>
     
-    <button class="btn-large hidden" id="plates-complete-btn" onclick="startMainGame()">START MAIN GAME →</button>
+    <div id="plates-container" style="position: relative; width: 90%; max-width: 800px; height: 500px; background: rgba(0,0,0,0.5); border-radius: 10px; border: 2px solid #00ff88;"></div>
+    
+    <div id="slingshot-node-bonus" style="position: absolute; bottom: 80px; left: 50%; width: 30px; height: 30px; background: radial-gradient(circle, #00ff88, transparent); border-radius: 50%; transform: translateX(-50%); z-index: 41; box-shadow: 0 0 30px #00ff88;"></div>
+    <div id="band-l-bonus" class="band"></div>
+    <div id="band-r-bonus" class="band"></div>
 </div>
 
 <!-- GAME CONTAINER -->
@@ -346,11 +333,14 @@
 const gameState = {
     characters: [],
     currentLevel: 1,
+    currentBonusRound: 1,
     score: 0,
     activeCharacters: [],
     trajectoryDots: [],
     voices: [],
-    usingEmojis: false
+    bonusPlatesBroken: 0,
+    bonusTimeLeft: 30,
+    bonusTimer: null
 };
 
 const presetEmojis = ['😊','😎','🤠','🤖','👽','🐶','🐱','🦁','🐼','🐸'];
@@ -452,16 +442,6 @@ function handleImageUpload(event, index, type) {
     reader.readAsDataURL(file);
 }
 
-function continueWithEmojis() {
-    gameState.usingEmojis = true;
-    showAudioSetup();
-}
-
-function continueWithImages() {
-    gameState.usingEmojis = false;
-    showAudioSetup();
-}
-
 // =========================
 // AUDIO SETUP
 // =========================
@@ -525,82 +505,120 @@ async function recordVoice(index) {
     
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const recorder = new MediaRecorder(stream);
+        const mediaRecorder = new MediaRecorder(stream);
         const chunks = [];
         
         btn.textContent = '⏺️ RECORDING...';
         btn.disabled = true;
         
-        recorder.ondataavailable = e => {
-            if (e.data.size > 0) chunks.push(e.data);
+        mediaRecorder.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) {
+                chunks.push(e.data);
+            }
         };
         
-        recorder.onstop = () => {
-            const blob = new Blob(chunks, { type: 'audio/webm' });
-            gameState.characters[index].voice.blob = blob;
-            gameState.characters[index].voice.type = 'recorded';
-            
-            btn.textContent = '✓ RECORDED';
-            btn.style.borderColor = '#ffd700';
-            
+        mediaRecorder.onstop = () => {
+            if (chunks.length > 0) {
+                const blob = new Blob(chunks, { type: 'audio/webm' });
+                gameState.characters[index].voice.blob = blob;
+                gameState.characters[index].voice.type = 'recorded';
+                
+                btn.textContent = '✓ RECORDED';
+                btn.style.borderColor = '#ffd700';
+            } else {
+                btn.textContent = '🎤 RECORD';
+            }
+            btn.disabled = false;
             stream.getTracks().forEach(t => t.stop());
         };
         
-        recorder.start();
+        mediaRecorder.start();
+        
         setTimeout(() => {
-            if (recorder.state === 'recording') {
-                recorder.stop();
-                btn.disabled = false;
+            if (mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
             }
         }, 2000);
         
     } catch (err) {
+        console.error('Microphone error:', err);
         alert('Microphone not available. Using text-to-speech.');
         btn.textContent = '🎤 RECORD';
+        btn.disabled = false;
     }
 }
 
 // =========================
-// PLATE BONUS
+// BONUS ROUND
 // =========================
-let platesBroken = 0;
-let plateInterval = null;
-
-function startPlateBonus() {
+function startBonusRound() {
     document.getElementById('audio-setup-screen').classList.add('hidden');
     document.getElementById('plate-bonus-screen').classList.remove('hidden');
     
-    platesBroken = 0;
-    spawnPlates();
-}
-
-function spawnPlates() {
-    const container = document.getElementById('plates-container');
-    container.innerHTML = '';
+    // Update title
+    document.querySelector('#plate-bonus-screen h1').textContent = `🎯 BONUS ROUND ${gameState.currentBonusRound}`;
     
-    for (let i = 0; i < 10; i++) {
-        const plate = document.createElement('div');
-        plate.className = 'plate';
-        plate.id = `plate-${i}`;
-        
-        const x = 10 + (i % 5) * 18;
-        const y = 20 + Math.floor(i / 5) * 50;
-        
-        plate.style.left = x + '%';
-        plate.style.top = y + '%';
-        
-        plate.onclick = () => breakPlate(i);
-        
-        container.appendChild(plate);
-        
-        // Animate side to side
-        animatePlate(plate, x);
-    }
+    gameState.bonusPlatesBroken = 0;
+    gameState.bonusTimeLeft = 30;
+    
+    document.getElementById('plates-broken-count').textContent = 'PLATES: 0';
+    document.getElementById('bonus-timer').textContent = '30';
+    
+    startBonusTimer();
+    spawnPlatesBonus();
 }
 
-function animatePlate(plate, startX) {
-    let x = startX;
+function startBonusTimer() {
+    if (gameState.bonusTimer) clearInterval(gameState.bonusTimer);
+    
+    gameState.bonusTimer = setInterval(() => {
+        gameState.bonusTimeLeft--;
+        document.getElementById('bonus-timer').textContent = gameState.bonusTimeLeft;
+        
+        if (gameState.bonusTimeLeft <= 0) {
+            clearInterval(gameState.bonusTimer);
+            endBonusRound();
+        }
+    }, 1000);
+}
+
+function spawnPlatesBonus() {
+    const container = document.getElementById('plates-container');
+    
+    // Spawn initial plates
+    for (let i = 0; i < 5; i++) {
+        setTimeout(() => addPlate(), i * 200);
+    }
+    
+    // Keep spawning plates
+    const spawnInterval = setInterval(() => {
+        if (gameState.bonusTimeLeft > 0) {
+            addPlate();
+        } else {
+            clearInterval(spawnInterval);
+        }
+    }, 1500);
+}
+
+function addPlate() {
+    const container = document.getElementById('plates-container');
+    const rect = container.getBoundingClientRect();
+    
+    const plate = document.createElement('div');
+    plate.className = 'plate';
+    plate.id = 'plate-' + Date.now();
+    
+    const x = 10 + Math.random() * 70;
+    const y = 10 + Math.random() * 70;
+    
+    plate.style.left = x + '%';
+    plate.style.top = y + '%';
+    
+    container.appendChild(plate);
+    
+    // Animate
     let dir = Math.random() > 0.5 ? 1 : -1;
+    let currentX = parseFloat(x);
     
     const move = setInterval(() => {
         if (!plate.parentNode) {
@@ -608,46 +626,201 @@ function animatePlate(plate, startX) {
             return;
         }
         
-        x += 0.3 * dir;
+        currentX += 0.3 * dir;
+        if (currentX > x + 10 || currentX < x - 10) dir *= -1;
         
-        if (x > startX + 10 || x < startX - 10) {
-            dir *= -1;
-        }
-        
-        plate.style.left = x + '%';
+        plate.style.left = currentX + '%';
     }, 50);
 }
 
-function breakPlate(index) {
-    const plate = document.getElementById(`plate-${index}`);
-    if (!plate || plate.classList.contains('broken')) return;
+function endBonusRound() {
+    clearInterval(gameState.bonusTimer);
+    document.getElementById('plates-container').innerHTML = '';
     
-    plate.classList.add('broken');
-    platesBroken++;
+    // Bonus score
+    const bonusScore = gameState.bonusPlatesBroken * 10;
+    gameState.score += bonusScore;
     
-    document.getElementById('plates-broken').textContent = `${platesBroken} / 10`;
+    setTimeout(() => {
+        document.getElementById('plate-bonus-screen').classList.add('hidden');
+        startMainLevel();
+    }, 1000);
+}
+
+// =========================
+// SLINGSHOT (BONUS)
+// =========================
+let isDraggingBonus = false;
+let basePosBonus = { x: 0, y: 0 };
+let ghostBonus = null;
+
+function initSlingshotBonus() {
+    const node = document.getElementById('slingshot-node-bonus');
+    if (!node) return;
+    const rect = node.getBoundingClientRect();
+    basePosBonus = { x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
+}
+
+setTimeout(initSlingshotBonus, 100);
+
+window.addEventListener('touchstart', (e) => {
+    const touch = e.touches[0];
+    if (document.getElementById('plate-bonus-screen').classList.contains('hidden')) return;
+    if (touch.clientY < window.innerHeight / 2) return;
     
-    setTimeout(() => plate.remove(), 300);
+    isDraggingBonus = true;
+    initSlingshotBonus();
     
-    if (platesBroken >= 10) {
-        document.getElementById('plates-complete-btn').classList.remove('hidden');
+    ghostBonus = document.createElement('div');
+    ghostBonus.className = 'ghost';
+    ghostBonus.textContent = '🎯';
+    document.body.appendChild(ghostBonus);
+});
+
+window.addEventListener('touchmove', (e) => {
+    if (!isDraggingBonus) return;
+    e.preventDefault();
+    
+    const touch = e.touches[0];
+    ghostBonus.style.left = touch.clientX + 'px';
+    ghostBonus.style.top = touch.clientY + 'px';
+    
+    updateBandsBonus(touch.clientX, touch.clientY);
+    showTrajectoryBonus(touch.clientX, touch.clientY);
+});
+
+window.addEventListener('touchend', (e) => {
+    if (!isDraggingBonus) return;
+    isDraggingBonus = false;
+    
+    const touch = e.changedTouches[0];
+    const vx = (basePosBonus.x - touch.clientX) * 0.3;
+    const vy = (basePosBonus.y - touch.clientY) * 0.3;
+    
+    if (ghostBonus) ghostBonus.remove();
+    clearBandsBonus();
+    clearTrajectoryBonus();
+    
+    if (Math.abs(vx) > 5 || Math.abs(vy) > 5) {
+        launchBonus(vx, vy);
     }
+});
+
+function updateBandsBonus(tx, ty) {
+    const bl = document.getElementById('band-l-bonus');
+    const br = document.getElementById('band-r-bonus');
+    if (!bl || !br) return;
+    
+    const angle = Math.atan2(ty - basePosBonus.y, tx - basePosBonus.x);
+    const dist = Math.sqrt((tx - basePosBonus.x)**2 + (ty - basePosBonus.y)**2);
+    
+    bl.style.display = 'block';
+    bl.style.left = basePosBonus.x + 'px';
+    bl.style.top = basePosBonus.y + 'px';
+    bl.style.width = dist + 'px';
+    bl.style.transform = `rotate(${angle}rad)`;
+    
+    br.style.display = 'block';
+    br.style.left = basePosBonus.x + 'px';
+    br.style.top = basePosBonus.y + 'px';
+    br.style.width = dist + 'px';
+    br.style.transform = `rotate(${angle}rad)`;
+}
+
+function clearBandsBonus() {
+    const bl = document.getElementById('band-l-bonus');
+    const br = document.getElementById('band-r-bonus');
+    if (bl) bl.style.display = 'none';
+    if (br) br.style.display = 'none';
+}
+
+let bonusTrajectoryDots = [];
+
+function showTrajectoryBonus(startX, startY) {
+    clearTrajectoryBonus();
+    
+    const vx = (basePosBonus.x - startX) * 0.3;
+    const vy = (basePosBonus.y - startY) * 0.3;
+    
+    let px = basePosBonus.x;
+    let py = basePosBonus.y;
+    let velX = vx;
+    let velY = vy;
+    const gravity = 0.5;
+    
+    for (let i = 0; i < 20; i++) {
+        px += velX;
+        py += velY;
+        velY += gravity;
+        
+        if (py > window.innerHeight) break;
+        
+        const dot = document.createElement('div');
+        dot.className = 'trajectory-dot';
+        dot.style.left = px + 'px';
+        dot.style.top = py + 'px';
+        document.body.appendChild(dot);
+        bonusTrajectoryDots.push(dot);
+    }
+}
+
+function clearTrajectoryBonus() {
+    bonusTrajectoryDots.forEach(d => d.remove());
+    bonusTrajectoryDots = [];
+}
+
+function launchBonus(vx, vy) {
+    const p = document.createElement('div');
+    p.className = 'projectile';
+    p.textContent = '🎯';
+    document.body.appendChild(p);
+    
+    let px = basePosBonus.x;
+    let py = basePosBonus.y;
+    let velX = vx;
+    let velY = vy;
+    const gravity = 0.5;
+    
+    const fly = setInterval(() => {
+        px += velX;
+        py += velY;
+        velY += gravity;
+        
+        p.style.left = px + 'px';
+        p.style.top = py + 'px';
+        
+        if (py > window.innerHeight || py < 0) {
+            clearInterval(fly);
+            checkPlateHit(px, py);
+            p.remove();
+        }
+    }, 20);
+}
+
+function checkPlateHit(x, y) {
+    const plates = document.querySelectorAll('.plate:not(.broken)');
+    
+    plates.forEach(plate => {
+        const rect = plate.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        
+        const dist = Math.sqrt((x - cx)**2 + (y - cy)**2);
+        
+        if (dist < 40) {
+            plate.classList.add('broken');
+            gameState.bonusPlatesBroken++;
+            document.getElementById('plates-broken-count').textContent = `PLATES: ${gameState.bonusPlatesBroken}`;
+            setTimeout(() => plate.remove(), 300);
+        }
+    });
 }
 
 // =========================
 // MAIN GAME
 // =========================
-function startMainGame() {
-    document.getElementById('plate-bonus-screen').classList.add('hidden');
+function startMainLevel() {
     document.getElementById('game-container').style.display = 'block';
-    
-    gameState.currentLevel = 1;
-    gameState.score = 0;
-    
-    startLevel();
-}
-
-function startLevel() {
     updateUI();
     clearCharacters();
     spawnCharacter();
@@ -660,17 +833,14 @@ function spawnCharacter() {
     char.className = 'character';
     char.id = 'char-main';
     
-    if (!gameState.usingEmojis && charData.neutralImg) {
+    // Use uploaded image if available, otherwise emoji
+    if (charData.neutralImg) {
         char.innerHTML = `
             <img src="${charData.neutralImg}" class="character-img">
             ${charData.reactionImg ? `<img src="${charData.reactionImg}" class="character-reaction">` : ''}
-            <div class="hit-circle"></div>
         `;
     } else {
-        char.innerHTML = `
-            <div class="character-emoji">${charData.emoji}</div>
-            <div class="hit-circle"></div>
-        `;
+        char.innerHTML = `<div class="character-emoji">${charData.emoji}</div>`;
     }
     
     char.style.left = '50%';
@@ -700,7 +870,7 @@ function updateUI() {
 }
 
 // =========================
-// SLINGSHOT
+// SLINGSHOT (MAIN GAME)
 // =========================
 let isDragging = false;
 let basePos = { x: 0, y: 0 };
@@ -713,12 +883,11 @@ function initSlingshot() {
     basePos = { x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
 }
 
-window.addEventListener('resize', initSlingshot);
 setTimeout(initSlingshot, 100);
 
-function handleStart(e) {
-    const touch = e.touches ? e.touches[0] : e;
-    if (touch.clientY < window.innerHeight / 2) return;
+window.addEventListener('mousedown', (e) => {
+    if (document.getElementById('game-container').style.display === 'none') return;
+    if (e.clientY < window.innerHeight / 2) return;
     
     isDragging = true;
     initSlingshot();
@@ -727,29 +896,24 @@ function handleStart(e) {
     ghost.className = 'ghost';
     ghost.textContent = '🎯';
     document.body.appendChild(ghost);
-}
+});
 
-function handleMove(e) {
+window.addEventListener('mousemove', (e) => {
     if (!isDragging) return;
-    e.preventDefault();
     
-    const touch = e.touches ? e.touches[0] : e;
+    ghost.style.left = e.clientX + 'px';
+    ghost.style.top = e.clientY + 'px';
     
-    ghost.style.left = touch.clientX + 'px';
-    ghost.style.top = touch.clientY + 'px';
-    
-    updateBands(touch.clientX, touch.clientY);
-    showTrajectory(touch.clientX, touch.clientY);
-}
+    updateBands(e.clientX, e.clientY);
+    showTrajectory(e.clientX, e.clientY);
+});
 
-function handleEnd(e) {
+window.addEventListener('mouseup', (e) => {
     if (!isDragging) return;
     isDragging = false;
     
-    const touch = e.changedTouches ? e.changedTouches[0] : e;
-    
-    const vx = (basePos.x - touch.clientX) * 0.3;
-    const vy = (basePos.y - touch.clientY) * 0.3;
+    const vx = (basePos.x - e.clientX) * 0.3;
+    const vy = (basePos.y - e.clientY) * 0.3;
     
     if (ghost) ghost.remove();
     clearBands();
@@ -758,14 +922,7 @@ function handleEnd(e) {
     if (Math.abs(vx) > 5 || Math.abs(vy) > 5) {
         launch(vx, vy);
     }
-}
-
-window.addEventListener('touchstart', handleStart);
-window.addEventListener('touchmove', handleMove);
-window.addEventListener('touchend', handleEnd);
-window.addEventListener('mousedown', handleStart);
-window.addEventListener('mousemove', handleMove);
-window.addEventListener('mouseup', handleEnd);
+});
 
 function updateBands(tx, ty) {
     const bl = document.getElementById('band-l');
@@ -848,7 +1005,7 @@ function launch(vx, vy) {
         p.style.left = px + 'px';
         p.style.top = py + 'px';
         
-        if (py > window.innerHeight) {
+        if (py > window.innerHeight || py < 0) {
             clearInterval(fly);
             checkHit(px, py);
             p.remove();
@@ -861,12 +1018,9 @@ function checkHit(x, y) {
     if (!charState) return;
     
     const rect = charState.element.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
     
-    const dist = Math.sqrt((x - cx)**2 + (y - cy)**2);
-    
-    if (dist < 150) {
+    // HIT ANYWHERE ON IMAGE = SCORE
+    if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
         charState.hits++;
         
         charState.element.classList.add('reacting');
@@ -912,19 +1066,19 @@ function levelComplete() {
 
 function nextLevel() {
     document.getElementById('level-complete-screen').classList.add('hidden');
+    document.getElementById('game-container').style.display = 'none';
     
     gameState.currentLevel++;
     
     if (gameState.currentLevel > 10) {
         victory();
     } else {
-        startLevel();
+        gameState.currentBonusRound++;
+        startBonusRound();
     }
 }
 
 function victory() {
-    document.getElementById('game-container').style.display = 'none';
-    
     document.getElementById('victory-stats').innerHTML = `
         <h2 style="color: #00ff88;">ALL 10 LEVELS COMPLETE!</h2>
         <p style="font-size: 32px;">FINAL SCORE: ${gameState.score}</p>
